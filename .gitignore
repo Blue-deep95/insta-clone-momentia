@@ -1,0 +1,10 @@
+# This ignores node_modules in the root AND any subfolder
+**/node_modules/
+
+# This ignores .env in the root AND any subfolder
+**/.env
+**/.env.*
+
+# Just in case you have specific build folders
+**/dist/
+**/build/
