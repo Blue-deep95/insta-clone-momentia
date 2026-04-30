@@ -1,0 +1,138 @@
+import React, { useState } from "react";
+import { registerUser } from "../services/api";
+import { useNavigate } from "react-router-dom";
+
+const Register = () => {
+  const navigate = useNavigate();
+
+  const [form, setForm] = useState({
+    username: "",
+    email: "",
+    password: "",
+  });
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    try {
+      const { data } = await registerUser(form);
+      localStorage.setItem("user", JSON.stringify(data));
+      navigate("/");
+    } catch (err) {
+      setError(err.response?.data?.message || "Registration failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 px-4">
+
+      {/* Card */}
+      <div className="bg-white/80 backdrop-blur-lg shadow-2xl rounded-3xl p-8 w-full max-w-md border border-gray-200">
+
+        {/* Logo */}
+        <div className="flex flex-col items-center mb-6">
+          <div className="text-4xl font-bold bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 text-transparent bg-clip-text">
+            Momentia
+          </div>
+          <p className="text-gray-500 text-sm mt-1">
+            Create your account
+          </p>
+        </div>
+
+        {/* Error */}
+        {error && (
+          <p className="text-red-500 text-center text-sm mb-4">{error}</p>
+        )}
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-4">
+
+          {/* Username */}
+          <input
+            type="text"
+            name="username"
+            placeholder="Username"
+            value={form.username}
+            onChange={handleChange}
+            required
+            className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-purple-400 outline-none transition"
+          />
+
+          {/* Email */}
+          <input
+            type="email"
+            name="email"
+            placeholder="Email"
+            value={form.email}
+            onChange={handleChange}
+            required
+            className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-purple-400 outline-none transition"
+          />
+
+          {/* Password */}
+          <input
+            type="password"
+            name="password"
+            placeholder="Password"
+            value={form.password}
+            onChange={handleChange}
+            required
+            className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-purple-400 outline-none transition"
+          />
+
+          {/* Button */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-3 rounded-xl font-semibold text-white 
+            bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 
+            hover:opacity-90 transition-all duration-200 shadow-md"
+          >
+            {loading ? "Creating..." : "Register"}
+          </button>
+        </form>
+
+        {/* Divider */}
+        <div className="flex items-center my-5">
+          <div className="flex-grow h-px bg-gray-300"></div>
+          <span className="px-3 text-gray-400 text-sm">or</span>
+          <div className="flex-grow h-px bg-gray-300"></div>
+        </div>
+
+        {/* Social Login */}
+        <div className="space-y-2">
+          <button className="w-full py-2 border rounded-lg hover:bg-gray-50">
+            Continue with Google
+          </button>
+          <button className="w-full py-2 border rounded-lg hover:bg-gray-50">
+            Continue with Facebook
+          </button>
+        </div>
+
+        {/* Login Link */}
+        <p className="text-center text-sm mt-5">
+          Already have an account?{" "}
+          <span
+            onClick={() => navigate("/login")}
+            className="text-purple-600 font-medium cursor-pointer"
+          >
+            Login
+          </span>
+        </p>
+      </div>
+    </div>
+  );
+};
+
+export default Register;
