@@ -7,8 +7,10 @@ export default function App() {
   return (
     <div>
       <BrowserRouter>
-      <Route path="/Register" element={<Register/>}/>
-      <Route path="/Login"  element={<Login/>}/>
+      <Routes>
+      <Route path="/register" element={<Register/>}/>
+      <Route path="/login"  element={<Login/>}/>
+      </Routes>
       </BrowserRouter>
     </div>
   )
