@@ -4,6 +4,9 @@ require("dotenv").config()
 const cors = require("cors")
 const cookieParser = require("cookie-parser")
 
+// import routes
+const userRoutes = require('./routes/userRoutes.js')
+
 // import db 
 const connectDB = require('./db/db.js')
 
@@ -23,6 +26,9 @@ app.use(cookieParser())
 
 // trying to connect db
 connectDB(app)
+
+// routes
+app.use("/api/user",userRoutes)
 
 
 app.listen(PORT,()=>console.log('Server is running on',PORT))
