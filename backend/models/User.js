@@ -5,11 +5,13 @@ const UserSchema = new mongoose.Schema({
         type:String,
         required:true
     },
+    
     email:{
         type:String,
         required:true,
         unique:true
     },
+
     password:String,
     refreshToken: String,
 
@@ -28,6 +30,10 @@ const UserSchema = new mongoose.Schema({
         default:0
     },
     totalComments:{
+        type:Number,
+        default:0
+    },
+    totalPosts:{
         type:Number,
         default:0
     },

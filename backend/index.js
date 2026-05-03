@@ -6,18 +6,25 @@ const cookieParser = require("cookie-parser")
 
 // import routes
 const userRoutes = require('./routes/userRoutes.js')
+const profileRoutes = require('./routes/profileRoutes')
 
 // import db 
 const connectDB = require('./db/db.js')
 
 
 const PORT = 2000
-app.use(cors(
-    {
-        origin: "http://localhost:5173",
-        credentials: true
-    }
-))
+
+// change this for production 
+// app.use(cors(
+//     {
+//         origin: "http://localhost:5173",
+//         credentials: true
+//     }
+// ))
+
+// to simplyfy testing just use normal cors
+app.use(cors())
+
 
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
