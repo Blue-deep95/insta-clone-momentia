@@ -9,14 +9,14 @@ const ForgotPassword = () => {
 
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
-  const [newPassword, setNewPassword] = useState("");
+  const [password, setPassword] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [timer, setTimer] = useState(30);
 
-  // ⏱️ Timer for resend OTP
+  // ⏱️ Timer
   useEffect(() => {
     if (step === 2 && timer > 0) {
       const interval = setInterval(() => setTimer((t) => t - 1), 1000);
@@ -24,7 +24,7 @@ const ForgotPassword = () => {
     }
   }, [step, timer]);
 
-  // ✅ SEND OTP
+  // ✅ STEP 1 → SEND OTP
   const handleSendOtp = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -32,19 +32,20 @@ const ForgotPassword = () => {
     setMessage("");
 
     try {
-      const res = await api.post("/user/send-otp", { email });
-      setMessage(res.data.message || "OTP sent 📩");
+      const res = await api.post("/user/forgot-password", { email });
+
+      setMessage(res.data.message || "OTP sent to email 📩");
       setStep(2);
       setTimer(30);
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to send OTP");
+      setError(err.response?.data?.message || "User not found");
     } finally {
       setLoading(false);
     }
   };
 
-  // ✅ VERIFY OTP + RESET
-  const handleVerifyOtp = async (e) => {
+  // ✅ STEP 2 → VERIFY OTP + RESET PASSWORD
+  const handleResetPassword = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
@@ -53,23 +54,25 @@ const ForgotPassword = () => {
     try {
       const finalOtp = otp.join("");
 
-      const res = await api.post("/user/verify-otp", {
+      const res = await api.post("/user/reset-password", {
         email,
         otp: finalOtp,
-        newPassword,
+        password, // 🔥 IMPORTANT: must match backend
       });
 
       setMessage(res.data.message || "Password reset successful ✅");
 
       setTimeout(() => navigate("/login"), 2000);
     } catch (err) {
-      setError(err.response?.data?.message || "Invalid OTP");
+      setError(
+        err.response?.data?.message || "Invalid or expired OTP"
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  // 🔢 Handle OTP input
+  // 🔢 OTP handler
   const handleOtpChange = (value, index) => {
     if (!/^[0-9]?$/.test(value)) return;
 
@@ -77,7 +80,6 @@ const ForgotPassword = () => {
     newOtp[index] = value;
     setOtp(newOtp);
 
-    // auto focus next
     if (value && index < 5) {
       document.getElementById(`otp-${index + 1}`).focus();
     }
@@ -98,7 +100,7 @@ const ForgotPassword = () => {
         <div className="bg-white/80 backdrop-blur-lg shadow-2xl rounded-3xl p-8 w-full max-w-md">
 
           <h2 className="text-3xl font-bold text-center mb-2">
-            {step === 1 ? "Forgot Password" : "Verify OTP"}
+            {step === 1 ? "Forgot Password" : "Reset Password"}
           </h2>
 
           <p className="text-center text-gray-500 mb-6 text-sm">
@@ -137,9 +139,9 @@ const ForgotPassword = () => {
 
           {/* STEP 2 */}
           {step === 2 && (
-            <form onSubmit={handleVerifyOtp} className="space-y-4">
+            <form onSubmit={handleResetPassword} className="space-y-4">
 
-              {/* OTP INPUT */}
+              {/* OTP */}
               <div className="flex justify-between gap-2">
                 {otp.map((digit, index) => (
                   <input
@@ -160,8 +162,8 @@ const ForgotPassword = () => {
               <input
                 type="password"
                 placeholder="New Password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 required
                 className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-purple-400"
               />
@@ -173,10 +175,10 @@ const ForgotPassword = () => {
                 className="w-full py-3 rounded-xl text-white font-semibold 
                 bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500"
               >
-                {loading ? "Verifying..." : "Reset Password"}
+                {loading ? "Resetting..." : "Reset Password"}
               </button>
 
-              {/* RESEND OTP */}
+              {/* RESEND */}
               <div className="text-center text-sm text-gray-500">
                 {timer > 0 ? (
                   <span>Resend OTP in {timer}s</span>
