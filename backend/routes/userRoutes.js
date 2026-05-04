@@ -9,16 +9,16 @@ const transporter= require("../utils/sendEmail.js")
 router.post("/send-otp",async(req,res)=>{
     const {email} = req.body
     try{
-        let seller = await Seller.findOne({email})
+        let user = await User.findOne({email})
         console.log("email", email)
-        if (!seller) {
-            seller= new Seller({email})
+        if (!user) {
+            user= new User({email})
         }
         let otp  = Math.floor(90000 * Math.random() + 10000)
-        seller.otp= otp
-         seller.otpExpiry = 5 * 60 * 1000 + Date.now()
-        await seller.save()
-        console.log(seller)
+        user.otp= otp
+         user.otpExpiry = 5 * 60 * 1000 + Date.now()
+        await user.save()
+        console.log(user)
         await transporter.sendEmail({
             from:process.env.Email,
             to: email,
@@ -36,17 +36,17 @@ router.post("/send-otp",async(req,res)=>{
 router.post("/verify-otp",async(req,res)=>{
     try{
         const { email, otp } = req.body
-        const seller = await Seller.findOne({ email })
-        if (!seller) {
+        const user = await User.findOne({ email })
+        if (!user) {
             return res.status(400).json({ message: "User didnt created otp" })
         }
-        if (seller.otp != otp || seller.otpExpiry < Date.now()) {
+        if (user.otp != otp || user.otpExpiry < Date.now()) {
             return res.status(400).json({ message: "Otp expired" })
         }
-        seller.isEmailVerified = true
-        seller.otp = null
-        seller.otpExpiry = null
-        await seller.save()
+        user.isEmailVerified = true
+        user.otp = null
+        user.otpExpiry = null
+        await user.save()
         return res.status(200).json({ message: "Email Verified" })
     }
     catch(err){
