@@ -1,71 +1,209 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import api from "../services/api.js";
 
 const ForgotPassword = () => {
+  const navigate = useNavigate();
+
+  const [step, setStep] = useState(1);
+
   const [email, setEmail] = useState("");
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const [newPassword, setNewPassword] = useState("");
+
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+  const [timer, setTimer] = useState(30);
 
-  const handleSubmit = async (e) => {
+  // ⏱️ Timer for resend OTP
+  useEffect(() => {
+    if (step === 2 && timer > 0) {
+      const interval = setInterval(() => setTimer((t) => t - 1), 1000);
+      return () => clearInterval(interval);
+    }
+  }, [step, timer]);
+
+  // ✅ SEND OTP
+  const handleSendOtp = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError("");
+    setMessage("");
 
     try {
-      const res = await fetch("http://localhost:2000/api/forgot-password", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email }),
-      });
-
-      if (!res.ok) throw new Error("Failed");
-
-      setMessage("Reset link sent to your email 📩");
+      const res = await api.post("/user/send-otp", { email });
+      setMessage(res.data.message || "OTP sent 📩");
+      setStep(2);
+      setTimer(30);
     } catch (err) {
-      setMessage("Something went wrong");
+      setError(err.response?.data?.message || "Failed to send OTP");
     } finally {
       setLoading(false);
     }
   };
 
+  // ✅ VERIFY OTP + RESET
+  const handleVerifyOtp = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    setMessage("");
+
+    try {
+      const finalOtp = otp.join("");
+
+      const res = await api.post("/user/verify-otp", {
+        email,
+        otp: finalOtp,
+        newPassword,
+      });
+
+      setMessage(res.data.message || "Password reset successful ✅");
+
+      setTimeout(() => navigate("/login"), 2000);
+    } catch (err) {
+      setError(err.response?.data?.message || "Invalid OTP");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 🔢 Handle OTP input
+  const handleOtpChange = (value, index) => {
+    if (!/^[0-9]?$/.test(value)) return;
+
+    const newOtp = [...otp];
+    newOtp[index] = value;
+    setOtp(newOtp);
+
+    // auto focus next
+    if (value && index < 5) {
+      document.getElementById(`otp-${index + 1}`).focus();
+    }
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-100 px-4">
+    <div className="min-h-screen flex">
 
-      <div className="bg-white shadow-xl rounded-3xl p-8 w-full max-w-md">
+      {/* LEFT IMAGE */}
+      <div
+        className="hidden md:block md:w-1/2 bg-cover bg-center"
+        style={{ backgroundImage: "url('/login-bg.png')" }}
+      />
 
-        <h2 className="text-2xl font-bold text-center mb-4">
-          Forgot Password
-        </h2>
+      {/* RIGHT SIDE */}
+      <div className="w-full md:w-1/2 flex items-center justify-center px-6 bg-gradient-to-br from-slate-100 to-slate-200">
 
-        <p className="text-gray-500 text-sm text-center mb-6">
-          Enter your email to receive reset link
-        </p>
+        <div className="bg-white/80 backdrop-blur-lg shadow-2xl rounded-3xl p-8 w-full max-w-md">
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+          <h2 className="text-3xl font-bold text-center mb-2">
+            {step === 1 ? "Forgot Password" : "Verify OTP"}
+          </h2>
 
-          <input
-            type="email"
-            placeholder="Enter your email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-purple-400 outline-none"
-          />
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3 rounded-xl text-white bg-purple-600 hover:opacity-90"
-          >
-            {loading ? "Sending..." : "Send Reset Link"}
-          </button>
-        </form>
-
-        {message && (
-          <p className="text-center text-sm mt-4 text-gray-600">
-            {message}
+          <p className="text-center text-gray-500 mb-6 text-sm">
+            {step === 1
+              ? "Enter your email to receive OTP"
+              : "Enter OTP & new password"}
           </p>
-        )}
+
+          {/* Messages */}
+          {error && <p className="text-red-500 text-center mb-3">{error}</p>}
+          {message && <p className="text-green-600 text-center mb-3">{message}</p>}
+
+          {/* STEP 1 */}
+          {step === 1 && (
+            <form onSubmit={handleSendOtp} className="space-y-4">
+
+              <input
+                type="email"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-purple-400"
+              />
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-3 rounded-xl text-white font-semibold 
+                bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500"
+              >
+                {loading ? "Sending..." : "Send OTP"}
+              </button>
+            </form>
+          )}
+
+          {/* STEP 2 */}
+          {step === 2 && (
+            <form onSubmit={handleVerifyOtp} className="space-y-4">
+
+              {/* OTP INPUT */}
+              <div className="flex justify-between gap-2">
+                {otp.map((digit, index) => (
+                  <input
+                    key={index}
+                    id={`otp-${index}`}
+                    type="text"
+                    maxLength="1"
+                    value={digit}
+                    onChange={(e) =>
+                      handleOtpChange(e.target.value, index)
+                    }
+                    className="w-12 h-12 text-center text-xl border rounded-xl focus:ring-2 focus:ring-purple-400"
+                  />
+                ))}
+              </div>
+
+              {/* PASSWORD */}
+              <input
+                type="password"
+                placeholder="New Password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                required
+                className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-purple-400"
+              />
+
+              {/* BUTTON */}
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-3 rounded-xl text-white font-semibold 
+                bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500"
+              >
+                {loading ? "Verifying..." : "Reset Password"}
+              </button>
+
+              {/* RESEND OTP */}
+              <div className="text-center text-sm text-gray-500">
+                {timer > 0 ? (
+                  <span>Resend OTP in {timer}s</span>
+                ) : (
+                  <span
+                    onClick={handleSendOtp}
+                    className="text-purple-600 cursor-pointer"
+                  >
+                    Resend OTP
+                  </span>
+                )}
+              </div>
+            </form>
+          )}
+
+          {/* BACK */}
+          <p className="text-center text-sm mt-5">
+            Back to{" "}
+            <span
+              onClick={() => navigate("/login")}
+              className="text-purple-600 cursor-pointer"
+            >
+              Login
+            </span>
+          </p>
+
+        </div>
       </div>
     </div>
   );
