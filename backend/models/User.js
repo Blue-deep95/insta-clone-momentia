@@ -11,6 +11,7 @@ const UserSchema = new mongoose.Schema({
         unique:true
     },
     password:String,
+    refreshToken: String,
 
     profilePicture:{
         original: String,
