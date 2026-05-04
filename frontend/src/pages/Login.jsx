@@ -51,7 +51,6 @@ const Login = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 px-4">
 
-      {/* Card */}
       <div className="bg-white/80 backdrop-blur-lg shadow-2xl rounded-3xl p-8 w-full max-w-md border border-gray-200">
 
         {/* Logo */}
@@ -94,6 +93,16 @@ const Login = () => {
             className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-purple-400 outline-none transition"
           />
 
+          {/* ✅ Forgot Password (correct place) */}
+          <div className="flex justify-end">
+            <span
+              onClick={() => navigate("/forgot-password")}
+              className="text-sm text-purple-600 cursor-pointer hover:underline"
+            >
+              Forgot Password?
+            </span>
+          </div>
+
           {/* Button */}
           <button
             type="submit"
@@ -106,6 +115,33 @@ const Login = () => {
           </button>
         </form>
 
+        {/* Divider */}
+        <div className="flex items-center my-5">
+          <div className="flex-grow h-px bg-gray-300"></div>
+          <span className="px-3 text-gray-400 text-sm">or</span>
+          <div className="flex-grow h-px bg-gray-300"></div>
+        </div>
+
+        {/* Social Login */}
+        <div className="space-y-2">
+          <button className="w-full py-2 border rounded-lg hover:bg-gray-50">
+            Continue with Google
+          </button>
+          <button className="w-full py-2 border rounded-lg hover:bg-gray-50">
+            Continue with Facebook
+          </button>
+        </div>
+
+        {/* Register Link */}
+        <p className="text-center text-sm mt-5">
+          Don't have an account?{" "}
+          <span
+            onClick={() => navigate("/register")}
+            className="text-purple-600 font-medium cursor-pointer"
+          >
+            Register
+          </span>
+        </p>
       </div>
     </div>
   );
