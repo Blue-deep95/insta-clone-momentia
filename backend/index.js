@@ -36,6 +36,7 @@ connectDB(app)
 
 // routes
 app.use("/api/user",userRoutes)
+app.use("/api/profile",profileRoutes)
 
 
 app.listen(PORT,()=>console.log('Server is running on',PORT))

@@ -5,7 +5,14 @@
 const express = require('express')
 const User = require('../models/User')
 const {protect} = require("../middleware/authMiddleware")
+const multer = require('multer')
+const uploadToCloudinary = require('../utils/uploadToCloudinary')
 router = express.Router()
+
+// prepare multer
+const upload = multer({
+    multer:multer.memoryStorage()
+})
 
 // route that gets information about a profile
 // this route can be used to get information about all users not just 
@@ -29,3 +36,20 @@ router.get("/get-profile/:id",
         }
     }
 )
+
+// route for uploading images
+router.post("/upload-avatar",
+    protect,
+    async(req,res)=>{
+        try{
+            
+        }
+        catch(err){
+            console.log("error in upload-avatar route 😒", err)
+            return res.status(500).json({message:"Internal server error"})
+        }
+    }
+
+)
+
+module.exports = router
