@@ -9,20 +9,21 @@ const transporter= require("../utils/sendEmail.js")
 router.post("/send-otp",async(req,res)=>{
     const {email} = req.body
     try{
-        let seller = await Seller.findOne({email})
+        let user = await User.findOne({email})
         console.log("email", email)
-        if (!seller) {
-            seller= new Seller({email})
+        if (!user) {
+            user= new User({email})
         }
         let otp  = Math.floor(90000 * Math.random() + 10000)
-        seller.otp= otp
-         seller.otpExpiry = 5 * 60 * 1000 + Date.now()
-        await seller.save()
-        console.log(seller)
-        await transporter.sendEmail({
-            from:process.env.Email,
+        user.otp= otp
+         user.otpExpiry = 50 * 60 * 1000 + Date.now()
+         user.username= email
+        await user.save()
+        console.log(user)
+        await transporter.sendMail({
+            from:process.env.EMAIL,
             to: email,
-            subject: "OTP verification mail",
+            subject: "OTP verification user",
             html:`<h2> OTP for email verification is ${otp}</h2>`
         })
         return res.status(201).json({ message:"Email sent successfully" })
@@ -36,17 +37,17 @@ router.post("/send-otp",async(req,res)=>{
 router.post("/verify-otp",async(req,res)=>{
     try{
         const { email, otp } = req.body
-        const seller = await Seller.findOne({ email })
-        if (!seller) {
+        const user = await User.findOne({ email })
+        if (!user) {
             return res.status(400).json({ message: "User didnt created otp" })
         }
-        if (seller.otp != otp || seller.otpExpiry < Date.now()) {
+        if (user.otp != otp || user.otpExpiry < Date.now()) {
             return res.status(400).json({ message: "Otp expired" })
         }
-        seller.isEmailVerified = true
-        seller.otp = null
-        seller.otpExpiry = null
-        await seller.save()
+        user.isEmailVerified = true
+        user.otp = null
+        user.otpExpiry = null
+        await user.save()
         return res.status(200).json({ message: "Email Verified" })
     }
     catch(err){
@@ -58,17 +59,21 @@ router.post("/verify-otp",async(req,res)=>{
 router.post("/register",async(req,res)=>{
     try{
         const {name,email,password}=req.body
-        const existingUser=await User.findOne({email})
-        if(existingUser){
-            return res.status(400).json({ message:"user already exists" })
+        const user=await User.findOne({email})
+
+        if(!user.isEmailVerified){
+            return res.status(400).json({ message:"user email verification not completed" })
         }
+        if (user.password){
+            return res.status(400).json({message:"User already exists!"})
+        }
+
         const hashedPassword=await bcrypt.hash(password,10)
-        const user=await User.create({
-            name,
-            email,
-            password:hashedPassword
-        })
-        res.status(201).json({ message:"user created successfully" })
+        user.username = name
+        user.password = hashedPassword
+        
+        user.save()
+        return res.status(201).json({ message:"user created successfully" })
     }
     catch(err){
         console.log(err)
@@ -92,6 +97,7 @@ router.post("/login",async(req,res)=>{
        const refreshToken=generateRefreshToken(user)
        user.refreshToken=refreshToken
        await user.save()
+
        res.cookie("refreshToken",refreshToken, {
         httpOnly:true,
         sameSite:"lax",
@@ -99,7 +105,7 @@ router.post("/login",async(req,res)=>{
         path:"/",
         maxAge:7 * 24 * 60 * 60 * 1000
        })
-       res.status(200).json({accessToken:accessToken,
+       return res.status(200).json({accessToken:accessToken,
         user:{
             id: user._id,
             name: user.name,
@@ -126,11 +132,17 @@ router.post("/forgot-password", async (req, res) => {
 
         const otp = Math.floor(100000 + Math.random() * 900000)
 
-        user.resetOtp = otp
-        user.otpExpiry = Date.now() + 10 * 60 * 1000 
+        user.otp = otp
+        user.otpExpiry = Date.now() + 50 * 60 * 1000 
+        await transporter.sendMail({
+            from:process.env.EMAIL,
+            to: email,
+            subject: "OTP for changin passowrd",
+            html:`<h2> OTP for changing password is ${otp}</h2>`
+        })
 
         await user.save()
-        res.status(200).json({ message: "OTP sent to email" })
+        return res.status(200).json({ message: "OTP sent to email" })
 
     } catch (error) {
         console.error("Forgot Password Error:", error)
@@ -140,18 +152,18 @@ router.post("/forgot-password", async (req, res) => {
 
 router.post("/reset-password", async (req, res) => {
     try {
-        const { email, otp, newPassword } = req.body
+        const { email, otp, password } = req.body
 
         const user = await User.findOne({ email })
 
-        if (!user || user.resetOtp != otp || user.otpExpiry < Date.now()) {
+        if (!user || user.otp != otp || user.otpExpiry < Date.now()) {
             return res.status(400).json({ message: "Invalid or expired OTP" })
         }
 
-        const hashedPassword = await bcrypt.hash(newPassword, 10)
+        const hashedPassword = await bcrypt.hash(password, 10)
 
         user.password = hashedPassword
-        user.resetOtp = null
+        user.otp = null
         user.otpExpiry = null
 
         await user.save()
@@ -189,7 +201,7 @@ router.post("/logout",async(req,res)=>{
     user.refreshToken= null
     await user.save()
     res.clearCookie("refreshToken")
-    res.status(200).json({ message:"Logout successful" })
+    return res.status(200).json({ message:"Logout successful" })
 })
 
 

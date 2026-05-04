@@ -3,7 +3,7 @@ const mongoose =require('mongoose')
 const UserSchema = new mongoose.Schema({
     username:{
         type:String,
-        required:true
+        unique:true
     },
     
     email:{
@@ -12,14 +12,32 @@ const UserSchema = new mongoose.Schema({
         unique:true
     },
 
+    name:String,
+    bio:{
+        type:String,
+        default:""
+    },
+
     password:String,
     refreshToken: String,
+    otp:String,
+    otpExpiry:Number,
+    isEmailVerified:{
+        type:Boolean,
+        default:false
+    },
 
     profilePicture:{
         original: String,
         profileView:String,
         commentView:String
     },
+    savedPosts:[
+        {
+            type:mongoose.Schema.Types.ObjectId,
+            ref:'post'
+        }
+    ],
     blockedUsers:[{
         type:mongoose.Schema.Types.ObjectId,
         ref:"user"

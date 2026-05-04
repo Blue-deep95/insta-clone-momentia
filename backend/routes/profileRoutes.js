@@ -52,4 +52,4 @@ router.post("/upload-avatar",
 
 )
 
-module.exports = router
+module.exports=router

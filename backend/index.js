@@ -6,7 +6,7 @@ const cookieParser = require("cookie-parser")
 
 // import routes
 const userRoutes = require('./routes/userRoutes.js')
-const profileRoutes = require('./routes/profileRoutes')
+const profileRoutes = require('./routes/profileRoutes.js')
 
 // import db 
 const connectDB = require('./db/db.js')
