@@ -4,6 +4,8 @@ require("dotenv").config()
 const cors = require("cors")
 const cookieParser = require("cookie-parser")
 
+const {protect} = require('./middleware/authMiddleware.js')
+
 // import routes
 const userRoutes = require('./routes/userRoutes.js')
 const profileRoutes = require('./routes/profileRoutes.js')
@@ -14,6 +16,7 @@ const connectDB = require('./db/db.js')
 
 const PORT = 2000
 
+
 // change this for production 
 // app.use(cors(
 //     {
@@ -22,8 +25,14 @@ const PORT = 2000
 //     }
 // ))
 
-// to simplyfy testing just use normal cors
-app.use(cors())
+
+// to simplyfy testing just use cors with origin set to true
+// WARNING !!!!NEVER PUSH THIS INTO PRODUCTION !!!!!
+// UNCOMMENT THE ABOVE CODE FOR PRODUCTION USE!!!
+app.use(cors({
+    origin:true,
+    credentials:true
+}))
 
 
 app.use(express.json())
@@ -36,7 +45,7 @@ connectDB(app)
 
 // routes
 app.use("/api/user",userRoutes)
-app.use("/api/profile",profileRoutes)
+app.use("/api/profile",protect,profileRoutes) // call the middleware right here
 
 
 app.listen(PORT,()=>console.log('Server is running on',PORT))

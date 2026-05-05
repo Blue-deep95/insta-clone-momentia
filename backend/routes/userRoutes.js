@@ -86,6 +86,8 @@ router.post("/login",async(req,res)=>{
     try{
         const {email,password}=req.body
         const user=await User.findOne({email})
+        //console.log('request reached login route')
+
         if(!user){
             return res.status(400).json({ message:"invalid email or user not found" })
         }
