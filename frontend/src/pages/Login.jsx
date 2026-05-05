@@ -2,10 +2,18 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api.js";
 
+// importing redux toolkit functions
+import {useDispatch} from "react-redux"
+import {login} from "../slices/authSlice.js"
 
+
+// the login page
 const Login = () => {
-  const navigate = useNavigate();
 
+  
+  const dispatch = useDispatch()
+  const navigate = useNavigate();
+  
   const [form, setForm] = useState({
     email: "",
     password: "",
@@ -13,17 +21,7 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const loginUser = async (formData) => {
-    const response = await api.post("/login", formData);
-   
-
-    if (!response.ok) {
-      throw new Error("Login failed");
-    }
-
-    return response.json();
-  };
-
+  
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -34,11 +32,21 @@ const Login = () => {
     setError("");
 
     try {
-      const { data } = await loginUser(form);
-      localStorage.setItem("user", JSON.stringify(data));
+      console.log('reached try block')
+      const res = await api.post("/user/login",form)
+      const data = res.data
+
+      //console.log("data from request -->",data)
+
+      dispatch(login({ 
+        user: data.user, 
+        accessToken: data.accessToken // Use data.accessToken from response
+      }));
+      //localStorage.setItem("user", JSON.stringify(data));
       navigate("/");
     } catch (err) {
-      setError(err.message || "Login failed");
+      //console.log(err)
+      setError(err.response.data.message || "Login failed");
     } finally {
       setLoading(false);
     }
