@@ -3,21 +3,51 @@ const mongoose =require('mongoose')
 const UserSchema = new mongoose.Schema({
     username:{
         type:String,
-        required:true
+        unique:true
     },
+    
     email:{
         type:String,
         required:true,
         unique:true
     },
+
+    name:String,
+    bio:{
+        type:String,
+        default:""
+    },
+    gender:{
+        type:String,
+        default:"",
+    },
+
     password:String,
     refreshToken: String,
+    otp:String,
+    otpExpiry:Number,
+    isEmailVerified:{
+        type:Boolean,
+        default:false
+    },
 
+    // to delete and update images in cloudinary, a single public id 
+    // for original is required. Deleting original in cloudinary also 
+    // removes transformed images completely
     profilePicture:{
-        original: String,
+        original: {
+            url:String,
+            public_id:String
+        },
         profileView:String,
         commentView:String
     },
+    savedPosts:[
+        {
+            type:mongoose.Schema.Types.ObjectId,
+            ref:'post'
+        }
+    ],
     blockedUsers:[{
         type:mongoose.Schema.Types.ObjectId,
         ref:"user"
@@ -28,6 +58,10 @@ const UserSchema = new mongoose.Schema({
         default:0
     },
     totalComments:{
+        type:Number,
+        default:0
+    },
+    totalPosts:{
         type:Number,
         default:0
     },
