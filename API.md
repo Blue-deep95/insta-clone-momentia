@@ -160,3 +160,32 @@ Updates the authenticated user's profile details.
     ```json
     { "message": "Profile update succesfull" }
     ```
+
+---
+
+## 📝 Posts (`/post`)
+*All routes in this section require a valid Bearer Token.*
+
+### 1. Upload Post
+Uploads a new post with images or a video.
+*   **URL:** `/post/upload-post`
+*   **Method:** `POST`
+*   **Headers:** `Content-Type: multipart/form-data`
+*   **Body:** 
+    *   `caption` (String, required)
+    *   `images` (File, max 5) OR `video` (File, max 1)
+*   **Success Response (200):**
+    ```json
+    { "message": "Post created succesfully!" }
+    ```
+
+### 2. Delete Post
+Deletes an existing post.
+*   **URL:** `/post/delete-post/:id`
+*   **Method:** `DELETE`
+*   **Parameters:** `id` (Post ID)
+*   **Success Response (200):**
+    ```json
+    { "message": "Post deleted succesfully!" }
+    ```
+    *(Note: This route is currently under development for media cleanup.)*

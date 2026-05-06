@@ -7,7 +7,7 @@ const User = require('../models/User')
 const multer = require('multer')
 
 const router = express.Router()
-const uploadToCloudinaryImages = require('../utils/uploadToCloudinary')
+const uploadToCloudinary = require('../utils/uploadToCloudinary')
 const deleteFromCloudinary = require('../utils/deleteFromCloudinary')
 
 // prepare multer
@@ -64,7 +64,7 @@ router.post("/upload-avatar",
 
 
             // the result if succesfull gives out a secure_url that points to that specific image
-            const result = await uploadToCloudinaryImages(req.file.buffer, 'momentia/profiles', 'avatar')
+            const result = await uploadToCloudinary(req.file.buffer, 'momentia/profiles', 'avatar','image')
 
             // create seperate profile and comment views
             const profileViewUrl = result.secure_url.replace('/upload/', '/upload/w_400,h_400,c_fill,g_face,q_auto/')

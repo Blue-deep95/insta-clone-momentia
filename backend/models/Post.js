@@ -31,10 +31,9 @@ const PostSchema = new mongoose.Schema({
     },
 
     // thumb image for displaying posts at the same time
-    // thumb image will always be the first image stored here
-    thumbImage: {
-        url: String
-    },
+    // thumb image will always be the first image stored here whether for videos or 
+    // images
+    thumbImage: String,
 
     // images if they exist are stored in array as urls both their urls and public_ids
     images: [
@@ -46,8 +45,8 @@ const PostSchema = new mongoose.Schema({
 
     // video if they exist are stored in string url
     video: {
-        type: String,
-        default: ""
+        url:String,
+        public_id:String
     },
 
     // hashtags for future use 

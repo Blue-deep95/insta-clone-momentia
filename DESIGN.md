@@ -48,6 +48,11 @@ colors:
   background: '#f9f9ff'
   on-background: '#161c27'
   surface-variant: '#dde2f3'
+gradients:
+  twilight-background: 'linear-gradient(135deg, #ebdcff 0%, #ffd9e4 50%, #c6e7ff 100%)'
+  button-primary: 'linear-gradient(90deg, #6d4ca6 0%, #feb9d1 100%)'
+  story-ring: 'conic-gradient(from 0deg at 50% 50%, #b794f4 0%, #feb9d1 33%, #70add2 66%, #b794f4 100%)'
+  glass-overlay: 'linear-gradient(180deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.1) 100%)'
 typography:
   display-lg:
     fontFamily: Inter
@@ -115,7 +120,7 @@ Headlines use Inter with tighter letter spacing to maintain a clean, high-precis
 
 ## Icons
 
-The design system uses lucide-react icons extensively whenver possible.
+The design system uses lucide-react icons which are already installed, whenver possible.
 
 ## Layout & Spacing
 
