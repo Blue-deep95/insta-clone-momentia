@@ -2,6 +2,7 @@ import React from 'react'
 import {BrowserRouter,Routes,Route} from "react-router-dom"
 import Register from "./pages/Register.jsx"
 import Login from "./pages/Login.jsx"
+import Feed from "./pages/Feed.jsx"
 import ForgotPassword from "./pages/ForgotPassword.jsx"
 
 export default function App() {
@@ -11,6 +12,7 @@ export default function App() {
       <Routes>
        <Route path="/register" element={<Register/>}/> 
       <Route path="/login"  element={<Login/>}/>
+      <Route path="/"  element={<Feed/>}/>
       <Route path="/forgot-password"  element={<ForgotPassword/>}/> 
       </Routes>
       </BrowserRouter>
