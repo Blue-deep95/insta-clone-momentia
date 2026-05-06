@@ -2,10 +2,10 @@ import React, { useEffect, useState } from "react";
 import api from "../services/api";
 
 // Components
-import Navbar from "../components/Navbar";
-import PostCard from "../components/PostCard";
-import StoryBar from "../components/StoryBar";
-import Sidebar from "../components/Sidebar";
+import Navbar from "../components/Navbar.jsx";
+import PostCard from "../components/Postcard.jsx";
+import StoryBar from "../components/Storybar.jsx";
+import Sidebar from "../components/Sidebar.jsx";
 
 const Feed = () => {
   const [posts, setPosts] = useState([]);
