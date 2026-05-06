@@ -110,17 +110,34 @@ router.delete("/delete-post/:id",
                 return res.status(400).json({message:"Post does not exist or already deleted"})
             }
 
-
-            // work in progress
-            if (post.mediaType === 'image'){
-
+            // check if the user is the author of the post
+            if (post.author.toString() !== user._id.toString()) {
+                return res.status(403).json({ message: "You are not authorized to delete this post" })
             }
-            else if (post.mediaType === 'video'){
+
+            // delete media from cloudinary
+            if (post.mediaType === 'image'){
+                const deletePromises = post.images.map(item =>{
+                    return deleteFromCloudinary(item.public_id, 'image')
+                })
+
+                await Promise.all(deletePromises)
                 
             }
+            else if (post.mediaType === 'video'){
+                // get the public id from video
+                const video_id = post.video?.public_id
+                if (video_id) {
+                    await deleteFromCloudinary(video_id, 'video')
+                }
+            }
 
+            // after deleting media, delete post from db
+            await Post.findByIdAndDelete(post._id)
+            // also update the user's total post count in user's schema
+            await User.findByIdAndUpdate(user._id, { $inc: { totalPosts: -1 } })
 
-
+            return res.status(200).json({ message: "Post deleted successfully!" })
         }
         catch(err){
             console.log('error in delete-post route 😂',err)
@@ -130,6 +147,7 @@ router.delete("/delete-post/:id",
 )
 
 // for later updating posts either caption or images or videos in it
+
 
 
 module.exports = router

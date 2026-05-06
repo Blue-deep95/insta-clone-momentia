@@ -4,6 +4,7 @@
 
 const express = require('express')
 const User = require('../models/User')
+const Follow = require('../models/Follow.js')
 const multer = require('multer')
 
 const router = express.Router()
@@ -59,12 +60,12 @@ router.post("/upload-avatar",
             const old_public_id = user.profilePicture?.original?.public_id
 
             if (old_public_id) {
-                await deleteFromCloudinary(old_public_id)
+                await deleteFromCloudinary(old_public_id,'image')
             }
 
 
             // the result if succesfull gives out a secure_url that points to that specific image
-            const result = await uploadToCloudinary(req.file.buffer, 'momentia/profiles', 'avatar','image')
+            const result = await uploadToCloudinary(req.file.buffer, 'momentia/profiles', 'avatar', 'image')
 
             // create seperate profile and comment views
             const profileViewUrl = result.secure_url.replace('/upload/', '/upload/w_400,h_400,c_fill,g_face,q_auto/')
@@ -120,5 +121,69 @@ router.post("/edit-profile",
 
     }
 )
+
+// route for getting followers list of a specific user
+router.get("/get-followers/:id",
+    async (req, res) => {
+        try {
+            const { id } = req.params // This is the ID of the user whose followers we want to see
+
+            // Find all follow records where the target is the user ID provided
+            // and populate the 'host' (the follower) with specific fields
+            const followerDocs = await Follow.find({ target: id })
+                .populate('host', 'username profilePicture')
+                .select('host') // Only return the host field from the Follow document
+
+            // Map the results to return a clean list of follower objects
+            const followerList = followerDocs.map(doc => ({
+                userId: doc.host._id,
+                username: doc.host.username,
+                profilePicture: doc.host.profilePicture?.commentView // Sending a smaller view for lists
+            }))
+
+            return res.status(200).json({ 
+                followers: followerList, 
+                message: "Followers list retrieved successfully" 
+            })
+        }
+
+        catch (err) {
+            console.log('error in get-followers list', err)
+            return res.status(500).json({ message: "Internal server Error" })
+        }
+    }
+)
+
+// route for getting following list of a specific user
+router.get("/get-following/:id",
+    async (req, res) => {
+        try {
+            const { id } = req.params // This is the ID of the user whose following list we want to see
+
+            // Find all follow records where the host is the user ID provided
+            // and populate the 'target' (the person being followed) with specific fields
+            const followingDocs = await Follow.find({ host: id })
+                .populate('target', 'username profilePicture')
+                .select('target')
+
+            // Map the results to return a clean list of following objects
+            const followingList = followingDocs.map(doc => ({
+                userId: doc.target._id,
+                username: doc.target.username,
+                profilePicture: doc.target.profilePicture?.commentView
+            }))
+
+            return res.status(200).json({ 
+                following: followingList, 
+                message: "Following list retrieved successfully" 
+            })
+        }
+        catch (err) {
+            console.log('error in get-following list', err)
+            return res.status(500).json({ message: "Internal server Error" })
+        }
+    }
+)
+
 
 module.exports = router
