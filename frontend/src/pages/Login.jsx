@@ -55,10 +55,10 @@ const Login = () => {
   return (
     <div className="min-h-screen flex">
 
-      {/* ✅ LEFT SIDE IMAGE */}
+      {/*  LEFT SIDE IMAGE */}
       <div
         className="hidden md:block md:w-1/2 bg-cover bg-center relative"
-        style={{ backgroundImage: "url('/login-bg.png')" }} // 🔁 put your image in public folder
+        style={{ backgroundImage: "url('/login-bg.png')" }} 
       >
         {/* Overlay */}
         <div className="absolute inset-0 bg-black/20"></div>
@@ -71,7 +71,7 @@ const Login = () => {
         </div>
       </div>
 
-      {/* ✅ RIGHT SIDE LOGIN */}
+      {/* RIGHT SIDE LOGIN */}
       <div className="w-full md:w-1/2 flex items-center justify-center px-6 bg-gradient-to-br from-slate-100 to-slate-200">
 
         <div className="bg-white/80 backdrop-blur-lg shadow-2xl rounded-3xl p-8 w-full max-w-md border border-gray-200">
