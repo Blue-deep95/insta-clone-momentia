@@ -100,7 +100,7 @@ api.interceptors.response.use(
                 return Promise.reject(err)
             }
             finally{
-                // set is refreshing to false 
+                // set is refreshing to false whatever the outcome might be
                 isRefreshing = false
             }
         }
