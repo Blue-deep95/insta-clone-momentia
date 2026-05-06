@@ -15,6 +15,7 @@ const upload = multer({
     storage: multer.memoryStorage()
 })
 
+
 // route that gets information about a profile
 // this route can be used to get information about all users not just 
 // user own profile if requested profile id matches user's then 
@@ -52,13 +53,13 @@ router.post("/upload-avatar",
             // then upload to the file 
 
             const user = await User.findById(userId)
-            if (!user){
-                return res.status(400).json({message:"invalid user"})
+            if (!user) {
+                return res.status(400).json({ message: "invalid user" })
             }
             const old_public_id = user.profilePicture?.original?.public_id
 
-            if (old_public_id){
-                await deleteFromCloudinary(old_public_id) 
+            if (old_public_id) {
+                await deleteFromCloudinary(old_public_id)
             }
 
 
@@ -89,7 +90,6 @@ router.post("/upload-avatar",
             return res.status(500).json({ message: "Internal server error" })
         }
     }
-
 )
 
 // this route is only for changing bio and name and gender
@@ -97,20 +97,20 @@ router.post("/edit-profile",
     async (req, res) => {
         try {
             const { bio, name, gender } = req.body
-            userId = req.user._id
+            const userId = req.user._id
             // first try to find the user 
             const user = await User.findById(userId)
             if (!user) {
                 return res.status(400).json({ message: "No such user exists" })
             }
 
-            user.bio = bio
-            user.name = name
-            user.gender = gender
+            if (bio !== undefined) user.bio = bio;
+            if (name !== undefined) user.name = name;
+            if (gender !== undefined) user.gender = gender;
 
             await user.save()
 
-            return res.status(201).json({ message: 'Profile update succesfull' })
+            return res.status(200).json({ message: 'Profile update succesfull' })
         }
 
         catch (err) {
