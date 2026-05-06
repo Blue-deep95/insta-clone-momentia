@@ -3,17 +3,18 @@ import { useNavigate } from "react-router-dom";
 import api from "../services/api.js";
 
 // importing redux toolkit functions
-import {useDispatch} from "react-redux"
-import {login} from "../slices/authSlice.js"
+import { useDispatch } from "react-redux";
+import { login } from "../slices/authSlice.js";
 
+// importing the background image
+import loginBg from "../assets/bg-login.png.png";
 
 // the login page
 const Login = () => {
 
-  
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
   const navigate = useNavigate();
-  
+
   const [form, setForm] = useState({
     email: "",
     password: "",
@@ -21,7 +22,7 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  
+
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -32,21 +33,18 @@ const Login = () => {
     setError("");
 
     try {
-      console.log('reached try block')
-      const res = await api.post("/user/login",form)
-      const data = res.data
+      console.log('reached try block');
+      const res = await api.post("/user/login", form);
+      const data = res.data;
 
-      //console.log("data from request -->",data)
-
-      dispatch(login({ 
-        user: data.user, 
-        accessToken: data.accessToken // Use data.accessToken from response
+      dispatch(login({
+        user: data.user,
+        accessToken: data.accessToken
       }));
-      //localStorage.setItem("user", JSON.stringify(data));
-      navigate("/");
+
+      navigate("/profile");
     } catch (err) {
-      //console.log(err)
-      setError(err.response.data.message || "Login failed");
+      setError(err.response?.data?.message || "Login failed");
     } finally {
       setLoading(false);
     }
@@ -58,7 +56,7 @@ const Login = () => {
       {/*  LEFT SIDE IMAGE */}
       <div
         className="hidden md:block md:w-1/2 bg-cover bg-center relative"
-        style={{ backgroundImage: "url('/login-bg.png')" }} 
+        style={{ backgroundImage: `url(${loginBg})` }}
       >
         {/* Overlay */}
         <div className="absolute inset-0 bg-black/20"></div>

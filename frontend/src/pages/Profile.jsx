@@ -20,7 +20,7 @@ const Profile = () => {
   // ✅ Fetch Profile
   const fetchProfile = async () => {
     try {
-      const res = await api.get(`/profile/get-profile/${user._id}`);
+      const res = await api.get(`/profile/get-profile/${user.id}`);
       setProfile(res.data.profile);
 
       setForm({
