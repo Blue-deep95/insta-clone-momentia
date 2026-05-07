@@ -31,7 +31,6 @@ const CommentSchema = new mongoose.Schema({
         ref: "user",
         default: null,
         index: true
-
     },
 
     // contend of the comment

@@ -10,6 +10,7 @@ const {protect} = require('./middleware/authMiddleware.js')
 const userRoutes = require('./routes/userRoutes.js')
 const profileRoutes = require('./routes/profileRoutes.js')
 const postRoutes = require('./routes/postRoutes.js')
+const commentRoutes = require('./routes/commentRoutes.js')
 
 // import db 
 const connectDB = require('./db/db.js')
@@ -48,6 +49,7 @@ connectDB(app)
 app.use("/api/user",userRoutes)
 app.use("/api/profile",protect,profileRoutes) // call the middleware right here
 app.use("/api/post",protect,postRoutes)
+app.use("/api/comment",protect,commentRoutes)
 
 
 app.listen(PORT,()=>console.log('Server is running on',PORT))
