@@ -9,7 +9,7 @@ import {
   UserCircle,
 } from "lucide-react";
 
-export default function Navbar() {
+export default function Sidebar() {
   const location = useLocation();
 
   const navItems = [
