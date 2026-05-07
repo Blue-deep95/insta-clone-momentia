@@ -3,6 +3,7 @@
 // this page can also be used to upload profile images and updating status only
 
 const express = require('express')
+const mongoose = require('mongoose')
 const User = require('../models/User')
 const Follow = require('../models/Follow.js')
 const multer = require('multer')
@@ -15,6 +16,10 @@ const deleteFromCloudinary = require('../utils/deleteFromCloudinary')
 const upload = multer({
     storage: multer.memoryStorage()
 })
+
+
+// **need to write another route here that only sends the user's posts only
+// for profile view
 
 
 // route that gets information about a profile
@@ -128,21 +133,29 @@ router.get("/get-followers/:id",
         try {
             const { id } = req.params // This is the ID of the user whose followers we want to see
 
-            // Find all follow records where the target is the user ID provided
-            // and populate the 'host' (the follower) with specific fields
-            const followerDocs = await Follow.find({ target: id })
-                .populate('host', 'username profilePicture')
-                .select('host') // Only return the host field from the Follow document
-
-            // Map the results to return a clean list of follower objects
-            const followerList = followerDocs.map(doc => ({
-                userId: doc.host._id,
-                username: doc.host.username,
-                profilePicture: doc.host.profilePicture?.commentView // Sending a smaller view for lists
-            }))
+            const followers = await Follow.aggregate([
+                { $match: { target: new mongoose.Types.ObjectId(id) } },
+                {
+                    $lookup: {
+                        from: 'users',
+                        localField: 'host',
+                        foreignField: '_id',
+                        as: 'followerData'
+                    }
+                },
+                { $unwind: '$followerData' },
+                {
+                    $project: {
+                        _id: 0,
+                        userId: '$followerData._id',
+                        username: '$followerData.username',
+                        profilePicture: '$followerData.profilePicture.commentView'
+                    }
+                }
+            ]);
 
             return res.status(200).json({ 
-                followers: followerList, 
+                followers: followers, 
                 message: "Followers list retrieved successfully" 
             })
         }
@@ -160,22 +173,30 @@ router.get("/get-following/:id",
         try {
             const { id } = req.params // This is the ID of the user whose following list we want to see
 
-            // Find all follow records where the host is the user ID provided
-            // and populate the 'target' (the person being followed) with specific fields
-            const followingDocs = await Follow.find({ host: id })
-                .populate('target', 'username profilePicture')
-                .select('target')
-
-            // Map the results to return a clean list of following objects
-            const followingList = followingDocs.map(doc => ({
-                userId: doc.target._id,
-                username: doc.target.username,
-                profilePicture: doc.target.profilePicture?.commentView
-            }))
+            const following = await Follow.aggregate([
+                { $match: { host: new mongoose.Types.ObjectId(id) } },
+                {
+                    $lookup: {
+                        from: 'users',
+                        localField: 'target',
+                        foreignField: '_id',
+                        as: 'followingData'
+                    }
+                },
+                { $unwind: '$followingData' },
+                {
+                    $project: {
+                        _id: 0,
+                        userId: '$followingData._id',
+                        username: '$followingData.username',
+                        profilePicture: '$followingData.profilePicture.commentView'
+                    }
+                }
+            ]);
 
             return res.status(200).json({ 
-                following: followingList, 
-                message: "Following list retrieved successfully" 
+                following: following, 
+            message: "Following list retrieved successfully" 
             })
         }
         catch (err) {
