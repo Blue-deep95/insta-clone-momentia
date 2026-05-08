@@ -20,7 +20,7 @@ export default function Navbar() {
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 w-full bg-white border-t shadow-md z-50">
+    <div className="md:hidden fixed bottom-0 left-0 w-full bg-white border-t shadow-md z-50">
       {/* Mobile-style bar but stretched */}
       <div className="max-w-2xl mx-auto flex justify-between items-center px-6 h-16">
         {navItems.map((item, index) => {
