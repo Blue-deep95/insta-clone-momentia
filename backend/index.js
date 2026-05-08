@@ -13,6 +13,7 @@ const postRoutes = require('./routes/postRoutes.js')
 const commentRoutes = require('./routes/commentRoutes.js')
 const followRoutes = require('./routes/followRoutes.js')
 const feedRoutes = require('./routes/feedRoutes.js')
+const searchRoutes = require('./routes/searchRoutes.js')
 
 // import db 
 const connectDB = require('./db/db.js')
@@ -54,6 +55,7 @@ app.use("/api/post",protect,postRoutes)
 app.use("/api/comment",protect,commentRoutes)
 app.use("/api/follow",protect,followRoutes)
 app.use("/api/feed",protect,feedRoutes)
+app.use("/api/search", protect, searchRoutes)
 
 
 app.listen(PORT,()=>console.log('Server is running on',PORT))
