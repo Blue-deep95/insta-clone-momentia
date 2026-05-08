@@ -5,6 +5,7 @@ import Login from "./pages/Login.jsx"
 import Feed from "./pages/Feed.jsx"
 import ForgotPassword from "./pages/ForgotPassword.jsx"
 import Profile from "./pages/Profile.jsx"
+import CreatePost from "./pages/CreatePost.jsx"
 
 export default function App() {
   return (
@@ -15,10 +16,9 @@ export default function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/profile" element={<Profile />} />
-   
-      <Route path="/"  element={<Feed/>}/>
-    
-      </Routes>
+          <Route path="/create-post" element={<CreatePost />} />
+          <Route path="/" element={<Feed />} />
+        </Routes>
       </BrowserRouter>
     </div>
   )
