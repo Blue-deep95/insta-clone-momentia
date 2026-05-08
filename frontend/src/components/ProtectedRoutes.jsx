@@ -1,8 +1,11 @@
 import React from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate,Outlet } from "react-router-dom";
 import { useSelector } from "react-redux";
+import Navbar from "./Navbar";
+import SideBar from "./Sidebar"
+import TopBar from "./Topbar"
 
-export default function ProtectedRoutes({ children}) {
+export default function ProtectedRoutes() {
 
   // Get user from Redux store
   const { user } = useSelector((state) => state.auth);
@@ -13,7 +16,14 @@ export default function ProtectedRoutes({ children}) {
   }
 
 
-  return children;
+  return (
+    <>
+      <TopBar/>
+      <SideBar/>
+      <Navbar/>
+      <Outlet/>
+    </>
+  );
 }
 
 // Unauthorized Page

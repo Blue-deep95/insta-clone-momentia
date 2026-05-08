@@ -42,7 +42,7 @@ export default function Sidebar() {
 
   return (
     <>
-
+      
       {/* TABLET/DESKTOP SIDEBAR */}
       <div className="hidden md:flex fixed top-0 left-0 h-screen w-64 bg-black border-r border-gray-800 flex-col p-5">
 

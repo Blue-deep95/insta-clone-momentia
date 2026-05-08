@@ -46,7 +46,11 @@ Registers a new user after email verification.
 *   **Method:** `POST`
 *   **Body:**
     ```json
-    { "name": "John Doe", "email": "user@example.com", "password": "password123" }
+    { 
+      "name": "John Doe", 
+      "email": "user@example.com", 
+      "password": "password123" 
+    }
     ```
 *   **Success Response (201):**
     ```json
@@ -127,17 +131,34 @@ Retrieves public profile information for a user.
 *   **Success Response (200):**
     ```json
     {
+      "self": true/false,
+      "following": true/false,
       "profile": {
         "username": "...",
         "name": "...",
         "bio": "...",
-        "profilePicture": { ... }
+        "profilePicture": { ... },
+        "totalPosts": 0,
+        "followers": 0,
+        "following": 0
       },
-      "message": "profile search succesfull"
+      "message": "profile search succesful"
     }
     ```
 
-### 2. Upload Avatar
+### 2. Get User Posts
+Retrieves all posts belonging to a specific user.
+*   **URL:** `/profile/get-userposts/:id`
+*   **Method:** `GET`
+*   **Success Response (200):**
+    ```json
+    {
+      "posts": [ { ... } ],
+      "message": "User posts fetched successfully"
+    }
+    ```
+
+### 3. Upload Avatar
 Uploads and processes a profile picture via Cloudinary.
 *   **URL:** `/profile/upload-avatar`
 *   **Method:** `POST`
@@ -148,17 +169,127 @@ Uploads and processes a profile picture via Cloudinary.
     { "message": "Profile picture updated succesfully" }
     ```
 
-### 3. Edit Profile
+### 4. Edit Profile
 Updates the authenticated user's profile details.
 *   **URL:** `/profile/edit-profile`
 *   **Method:** `POST`
 *   **Body:**
     ```json
-    { "name": "New Name", "bio": "New Bio", "gender": "Male/Female/Other" }
+    { 
+      "name": "New Name", 
+      "bio": "New Bio", 
+      "gender": "Male/Female/Other",
+      "username": "newusername"
+    }
     ```
-*   **Success Response (201):**
+*   **Success Response (200):**
     ```json
-    { "message": "Profile update succesfull" }
+    { "message": "Profile update succesful" }
+    ```
+
+### 5. Get Followers
+Retrieves the list of followers for a specific user.
+*   **URL:** `/profile/get-followers/:id`
+*   **Method:** `GET`
+*   **Success Response (200):**
+    ```json
+    {
+      "followers": [
+        { "userId": "...", "username": "...", "profilePicture": "..." }
+      ],
+      "message": "Followers list retrieved successfully"
+    }
+    ```
+
+### 6. Get Following
+Retrieves the list of users a specific user is following.
+*   **URL:** `/profile/get-following/:id`
+*   **Method:** `GET`
+*   **Success Response (200):**
+    ```json
+    {
+      "following": [
+        { "userId": "...", "username": "...", "profilePicture": "..." }
+      ],
+      "message": "Following list retrieved successfully"
+    }
+    ```
+
+---
+
+## 🏠 Feed (`/feed`)
+*All routes in this section require a valid Bearer Token.*
+
+### 1. Get Feed Posts
+Retrieves paginated posts for the main feed with interaction metadata.
+*   **URL:** `/feed/get-posts/:page`
+*   **Method:** `GET`
+*   **Success Response (200):**
+    ```json
+    {
+      "posts": [
+        {
+          "_id": "...",
+          "author": "...",
+          "caption": "...",
+          "mediaType": "image/video",
+          "thumbImage": "...",
+          "images": [ { "url": "...", "public_id": "..." } ],
+          "video": { "url": "...", "public_id": "..." },
+          "authorDetails": { "username": "...", "profilePicture": { ... } },
+          "isLiked": true/false,
+          "isFollowing": true/false,
+          "totalLikes": 0,
+          "totalComments": 0
+        }
+      ],
+      "message": "posts retreived succesfully"
+    }
+    ```
+
+---
+
+## 🔍 Search (`/search`)
+*All routes in this section require a valid Bearer Token.*
+
+### 1. Search Users
+Searches for users by name or username with pagination.
+*   **URL:** `/search/search-users/:query/:page`
+*   **Method:** `GET`
+*   **Success Response (200):**
+    ```json
+    {
+      "results": [
+        {
+          "_id": "...",
+          "username": "...",
+          "name": "...",
+          "profilePicture": { ... },
+          "followers": 0,
+          "following": 0
+        }
+      ],
+      "message": "Results acquired successfully"
+    }
+    ```
+
+### 2. Search Posts
+Searches for posts by caption or hashtags with pagination.
+*   **URL:** `/search/search-posts/:query/:page`
+*   **Method:** `GET`
+*   **Success Response (200):**
+    ```json
+    {
+      "results": [
+        {
+          "_id": "...",
+          "author": "...",
+          "thumbImage": "...",
+          "totalLikes": 0
+        }
+      ],
+      "message": "Results acquired successfully"
+    }
     ```
 
 ---
@@ -180,12 +311,136 @@ Uploads a new post with images or a video.
     ```
 
 ### 2. Delete Post
-Deletes an existing post.
+Deletes an existing post and its associated media from Cloudinary.
 *   **URL:** `/post/delete-post/:id`
 *   **Method:** `DELETE`
 *   **Parameters:** `id` (Post ID)
 *   **Success Response (200):**
     ```json
-    { "message": "Post deleted succesfully!" }
+    { "message": "Post deleted successfully!" }
     ```
-    *(Note: This route is currently under development for media cleanup.)*
+
+### 3. Update Post
+Updates the caption or media of an existing post.
+*   **URL:** `/post/update-post`
+*   **Method:** `POST`
+*   **Headers:** `Content-Type: multipart/form-data`
+*   **Body:**
+    *   `postId` (String, required)
+    *   `caption` (String, optional)
+    *   `images` (File, optional, replaces old images) OR `video` (File, optional, replaces old video)
+*   **Success Response (200):**
+    ```json
+    { "message": "Post updated successfully!", "post": { ... } }
+    ```
+
+### 4. Toggle Like
+Likes or unlikes a post.
+*   **URL:** `/post/toggle-like/:postid`
+*   **Method:** `POST`
+*   **Parameters:** `postid` (Post ID)
+*   **Success Response (200):**
+    ```json
+    { "message": "Post liked/unliked successfully", "isLiked": true/false }
+    ```
+
+---
+
+## 💬 Comments (`/comment`)
+*All routes in this section require a valid Bearer Token.*
+
+### 1. Get Comments
+Retrieves comments for a specific post.
+*   **URL:** `/comment/get-comments/:postid`
+*   **Method:** `GET`
+*   **Success Response (200):**
+    ```json
+    {
+      "comments": [ { ... } ],
+      "message": "Comments fetched successfully"
+    }
+    ```
+*   *Note: Currently work in progress in the backend.*
+
+### 2. Create Comment
+Adds a new comment or a reply to an existing comment.
+*   **URL:** `/comment/create-comment`
+*   **Method:** `POST`
+*   **Body:**
+    ```json
+    {
+      "content": "Comment text",
+      "postid": "...",
+      "parent": "...", (Optional, ID of parent comment for replies)
+      "reference": "..." (Optional, ID of comment being replied to)
+    }
+    ```
+*   **Success Response (200):**
+    ```json
+    { "message": "Comment added successfully", "comment": { ... } }
+    ```
+
+### 3. Update Comment
+Updates the content of an existing comment.
+*   **URL:** `/comment/update-comment`
+*   **Method:** `PUT`
+*   **Body:**
+    ```json
+    { "commentId": "...", "content": "Updated text" }
+    ```
+*   **Success Response (200):**
+    ```json
+    { "message": "Comment edit succesful" }
+    ```
+
+### 4. Delete Comment
+Deletes an existing comment and all its nested replies, updating associated counts.
+*   **URL:** `/comment/delete-comment/:commentId`
+*   **Method:** `DELETE`
+*   **Parameters:** `commentId` (Comment ID)
+*   **Success Response (200):**
+    ```json
+    { 
+      "message": "Comment and its replies deleted successfully", 
+      "deletedCount": 5 
+    }
+    ```
+
+### 5. Toggle Like
+Likes or unlikes a comment.
+*   **URL:** `/comment/toggle-like/:commentid`
+*   **Method:** `POST`
+*   **Parameters:** `commentid` (Comment ID)
+*   **Success Response (200):**
+    ```json
+    { "message": "Comment liked/unliked successfully", "isLiked": true/false }
+    ```
+
+
+---
+
+## 🤝 Follow (`/follow`)
+*All routes in this section require a valid Bearer Token.*
+
+### 1. Follow User
+Follows another user and updates counts.
+*   **URL:** `/follow/follow-user`
+*   **Method:** `POST`
+*   **Body:**
+    ```json
+    { "targetId": "..." }
+    ```
+*   **Success Response (200):**
+    ```json
+    { "message": "User followed succesfully" }
+    ```
+
+### 2. Unfollow User
+Unfollows a user and updates counts.
+*   **URL:** `/follow/unfollow-user/:targetId`
+*   **Method:** `DELETE`
+*   **Parameters:** `targetId` (User ID)
+*   **Success Response (200):**
+    ```json
+    { "message": "Unfollowed succesfully" }
+    ```
