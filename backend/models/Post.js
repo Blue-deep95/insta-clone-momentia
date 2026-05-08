@@ -8,7 +8,7 @@ const PostSchema = new mongoose.Schema({
         required: true,
         index: true
     },
-    
+
     caption: {
         type: String,
         required: true
@@ -70,6 +70,9 @@ const PostSchema = new mongoose.Schema({
 
 
 }, { timestamps: true })
+
+// similar to user.js we index text here to make searches faster
+PostSchema.index({caption:'text',hashtags:'text'})
 
 
 module.exports = mongoose.model('post', PostSchema)

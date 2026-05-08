@@ -81,4 +81,8 @@ const UserSchema = new mongoose.Schema({
 
 }, { timestamps: true })
 
+// create a special text index to search through databases quickly
+// this is a special indexing only text to speed up searches based on name,username
+UserSchema.index({name:'text',username:'text'})
+
 module.exports = mongoose.model('user', UserSchema)

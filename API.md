@@ -249,6 +249,51 @@ Retrieves paginated posts for the main feed with interaction metadata.
 
 ---
 
+## 🔍 Search (`/search`)
+*All routes in this section require a valid Bearer Token.*
+
+### 1. Search Users
+Searches for users by name or username with pagination.
+*   **URL:** `/search/search-users/:query/:page`
+*   **Method:** `GET`
+*   **Success Response (200):**
+    ```json
+    {
+      "results": [
+        {
+          "_id": "...",
+          "username": "...",
+          "name": "...",
+          "profilePicture": { ... },
+          "followers": 0,
+          "following": 0
+        }
+      ],
+      "message": "Results acquired successfully"
+    }
+    ```
+
+### 2. Search Posts
+Searches for posts by caption or hashtags with pagination.
+*   **URL:** `/search/search-posts/:query/:page`
+*   **Method:** `GET`
+*   **Success Response (200):**
+    ```json
+    {
+      "results": [
+        {
+          "_id": "...",
+          "author": "...",
+          "thumbImage": "...",
+          "totalLikes": 0
+        }
+      ],
+      "message": "Results acquired successfully"
+    }
+    ```
+
+---
+
 ## 📝 Posts (`/post`)
 *All routes in this section require a valid Bearer Token.*
 
@@ -304,7 +349,20 @@ Likes or unlikes a post.
 ## 💬 Comments (`/comment`)
 *All routes in this section require a valid Bearer Token.*
 
-### 1. Create Comment
+### 1. Get Comments
+Retrieves comments for a specific post.
+*   **URL:** `/comment/get-comments/:postid`
+*   **Method:** `GET`
+*   **Success Response (200):**
+    ```json
+    {
+      "comments": [ { ... } ],
+      "message": "Comments fetched successfully"
+    }
+    ```
+*   *Note: Currently work in progress in the backend.*
+
+### 2. Create Comment
 Adds a new comment or a reply to an existing comment.
 *   **URL:** `/comment/create-comment`
 *   **Method:** `POST`
@@ -322,7 +380,7 @@ Adds a new comment or a reply to an existing comment.
     { "message": "Comment added successfully", "comment": { ... } }
     ```
 
-### 2. Update Comment
+### 3. Update Comment
 Updates the content of an existing comment.
 *   **URL:** `/comment/update-comment`
 *   **Method:** `PUT`
@@ -335,7 +393,7 @@ Updates the content of an existing comment.
     { "message": "Comment edit succesful" }
     ```
 
-### 3. Delete Comment
+### 4. Delete Comment
 Deletes an existing comment and all its nested replies, updating associated counts.
 *   **URL:** `/comment/delete-comment/:commentId`
 *   **Method:** `DELETE`
@@ -348,7 +406,7 @@ Deletes an existing comment and all its nested replies, updating associated coun
     }
     ```
 
-### 4. Toggle Like
+### 5. Toggle Like
 Likes or unlikes a comment.
 *   **URL:** `/comment/toggle-like/:commentid`
 *   **Method:** `POST`
