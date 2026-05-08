@@ -20,4 +20,5 @@ const deleteFromCloudinary = async(publicId, resourceType = 'image') =>{
         throw err
     }
 }
+
 module.exports = deleteFromCloudinary

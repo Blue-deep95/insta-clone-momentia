@@ -6,6 +6,7 @@ const express = require('express')
 const mongoose = require('mongoose')
 const User = require('../models/User')
 const Follow = require('../models/Follow.js')
+const Post = require('../models/Post')
 const multer = require('multer')
 
 const router = express.Router()
@@ -20,6 +21,19 @@ const upload = multer({
 
 // **need to write another route here that only sends the user's posts only
 // for profile view
+router.get("/get-userposts/:id",
+    async (req, res) => {
+        try {
+            const userId = req.user._id
+            const posts = await Post.find({ author: userId }).sort({ createdAt: -1 })
+            return res.status(200).json({ posts, message: "User posts fetched successfully" })
+        }
+        catch (err) {
+            console.log('Error in get-userposts route', err)
+            return res.status(500).json({ message: "Internal server error" })
+        }
+    }
+)
 
 
 // route that gets information about a profile
@@ -31,11 +45,23 @@ router.get("/get-profile/:id",
         try {
             const { id } = req.params
             // try to find the user in db
-            const target = await User.findById(id).select('-password -email -otp -refreshToken')
+            const target = await User.findById(id).select('-password -email -otp -refreshToken ')
             if (!target) {
-                return res.status(404).json({ message: "user not found" })
+                return res.status(404).json({ message: "User not found" })
             }
-            return res.status(200).json({ profile: target, message: "profile search succesfull" })
+            // case where the request is from the user 
+            if (target._id.toString() === req.user._id.toString()) {
+                return res.status(200).json({ self: true, following: false, profile: target, message: "Your profile fetched succesfully" })
+            }
+            // for fetching other's profile we must also check whether the user is following the target or not
+            const isUserFollowingTarget = await Follow.findOne({ host: req.user._id, target: target._id })
+
+            let following = false
+            if (isUserFollowingTarget) {
+                following = true
+            }
+
+            return res.status(200).json({ self: false, following, profile: target, message: "profile search succesful" })
         }
         catch (err) {
             console.log('Error in get-profile route', err)
@@ -65,7 +91,7 @@ router.post("/upload-avatar",
             const old_public_id = user.profilePicture?.original?.public_id
 
             if (old_public_id) {
-                await deleteFromCloudinary(old_public_id,'image')
+                await deleteFromCloudinary(old_public_id, 'image')
             }
 
 
@@ -102,12 +128,21 @@ router.post("/upload-avatar",
 router.post("/edit-profile",
     async (req, res) => {
         try {
-            const { bio, name, gender } = req.body
+            const { bio, name, gender, username } = req.body
             const userId = req.user._id
             // first try to find the user 
             const user = await User.findById(userId)
             if (!user) {
                 return res.status(400).json({ message: "No such user exists" })
+            }
+
+            // Check for username uniqueness ONLY if it is being changed
+            if (username && username !== user.username) {
+                const isUserNameTaken = await User.findOne({ username: username })
+                if (isUserNameTaken) {
+                    return res.status(400).json({ message: "Username already taken please choose another one" })
+                }
+                user.username = username
             }
 
             if (bio !== undefined) user.bio = bio;
@@ -116,7 +151,7 @@ router.post("/edit-profile",
 
             await user.save()
 
-            return res.status(200).json({ message: 'Profile update succesfull' })
+            return res.status(200).json({ message: 'Profile update succesful' })
         }
 
         catch (err) {
@@ -154,9 +189,9 @@ router.get("/get-followers/:id",
                 }
             ]);
 
-            return res.status(200).json({ 
-                followers: followers, 
-                message: "Followers list retrieved successfully" 
+            return res.status(200).json({
+                followers: followers,
+                message: "Followers list retrieved successfully"
             })
         }
 
@@ -194,9 +229,9 @@ router.get("/get-following/:id",
                 }
             ]);
 
-            return res.status(200).json({ 
-                following: following, 
-            message: "Following list retrieved successfully" 
+            return res.status(200).json({
+                following: following,
+                message: "Following list retrieved successfully"
             })
         }
         catch (err) {

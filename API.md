@@ -46,7 +46,11 @@ Registers a new user after email verification.
 *   **Method:** `POST`
 *   **Body:**
     ```json
-    { "name": "John Doe", "email": "user@example.com", "password": "password123" }
+    { 
+      "name": "John Doe", 
+      "email": "user@example.com", 
+      "password": "password123" 
+    }
     ```
 *   **Success Response (201):**
     ```json
@@ -127,20 +131,34 @@ Retrieves public profile information for a user.
 *   **Success Response (200):**
     ```json
     {
+      "self": true/false,
+      "following": true/false,
       "profile": {
         "username": "...",
         "name": "...",
         "bio": "...",
         "profilePicture": { ... },
         "totalPosts": 0,
-        "followersCount": 0,
-        "followingCount": 0
+        "followers": 0,
+        "following": 0
       },
-      "message": "profile search succesfull"
+      "message": "profile search succesful"
     }
     ```
 
-### 2. Upload Avatar
+### 2. Get User Posts
+Retrieves all posts belonging to a specific user.
+*   **URL:** `/profile/get-userposts/:id`
+*   **Method:** `GET`
+*   **Success Response (200):**
+    ```json
+    {
+      "posts": [ { ... } ],
+      "message": "User posts fetched successfully"
+    }
+    ```
+
+### 3. Upload Avatar
 Uploads and processes a profile picture via Cloudinary.
 *   **URL:** `/profile/upload-avatar`
 *   **Method:** `POST`
@@ -151,20 +169,25 @@ Uploads and processes a profile picture via Cloudinary.
     { "message": "Profile picture updated succesfully" }
     ```
 
-### 3. Edit Profile
+### 4. Edit Profile
 Updates the authenticated user's profile details.
 *   **URL:** `/profile/edit-profile`
 *   **Method:** `POST`
 *   **Body:**
     ```json
-    { "name": "New Name", "bio": "New Bio", "gender": "Male/Female/Other" }
+    { 
+      "name": "New Name", 
+      "bio": "New Bio", 
+      "gender": "Male/Female/Other",
+      "username": "newusername"
+    }
     ```
 *   **Success Response (200):**
     ```json
-    { "message": "Profile update succesfull" }
+    { "message": "Profile update succesful" }
     ```
 
-### 4. Get Followers
+### 5. Get Followers
 Retrieves the list of followers for a specific user.
 *   **URL:** `/profile/get-followers/:id`
 *   **Method:** `GET`
@@ -178,7 +201,7 @@ Retrieves the list of followers for a specific user.
     }
     ```
 
-### 5. Get Following
+### 6. Get Following
 Retrieves the list of users a specific user is following.
 *   **URL:** `/profile/get-following/:id`
 *   **Method:** `GET`
@@ -189,6 +212,38 @@ Retrieves the list of users a specific user is following.
         { "userId": "...", "username": "...", "profilePicture": "..." }
       ],
       "message": "Following list retrieved successfully"
+    }
+    ```
+
+---
+
+## 🏠 Feed (`/feed`)
+*All routes in this section require a valid Bearer Token.*
+
+### 1. Get Feed Posts
+Retrieves paginated posts for the main feed with interaction metadata.
+*   **URL:** `/feed/get-posts/:page`
+*   **Method:** `GET`
+*   **Success Response (200):**
+    ```json
+    {
+      "posts": [
+        {
+          "_id": "...",
+          "author": "...",
+          "caption": "...",
+          "mediaType": "image/video",
+          "thumbImage": "...",
+          "images": [ { "url": "...", "public_id": "..." } ],
+          "video": { "url": "...", "public_id": "..." },
+          "authorDetails": { "username": "...", "profilePicture": { ... } },
+          "isLiked": true/false,
+          "isFollowing": true/false,
+          "totalLikes": 0,
+          "totalComments": 0
+        }
+      ],
+      "message": "posts retreived succesfully"
     }
     ```
 
