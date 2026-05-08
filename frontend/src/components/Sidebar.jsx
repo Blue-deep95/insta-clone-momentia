@@ -42,27 +42,6 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* MOBILE NAVBAR */}
-      <div className="fixed bottom-0 left-0 w-full bg-black border-t border-gray-800 flex justify-around items-center py-3 z-50 md:hidden">
-
-        {navItems.map((item) => (
-          <Link
-            key={item.path}
-            to={item.path}
-            className={`flex flex-col items-center ${
-              location.pathname === item.path
-                ? "text-white"
-                : "text-gray-500"
-            }`}
-          >
-            {item.icon}
-
-            <span className="text-xs mt-1">
-              {item.label}
-            </span>
-          </Link>
-        ))}
-      </div>
 
       {/* TABLET/DESKTOP SIDEBAR */}
       <div className="hidden md:flex fixed top-0 left-0 h-screen w-64 bg-black border-r border-gray-800 flex-col p-5">
