@@ -1,5 +1,12 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
+import {
+  Home,
+  Search,
+  Clapperboard,
+  Send,
+  UserCircle,
+} from "lucide-react";
 
 export default function Navbar() {
   const location = useLocation();
@@ -23,15 +30,13 @@ export default function Navbar() {
 
           return (
             <Link key={index} to={item.path}>
-              <span
-                className={`text-sm font-medium transition ${
-                  isActive
-                    ? "text-black border-b-2 border-black pb-1"
-                    : "text-gray-400"
+              <div
+                className={`transition ${
+                  isActive ? "text-black" : "text-gray-400"
                 }`}
               >
-                {item.label}
-              </span>
+                {item.icon}
+              </div>
             </Link>
           );
         })}
