@@ -8,15 +8,15 @@ import StoryBar from "../components/Storybar.jsx";
 import Sidebar from "../components/Sidebar.jsx";
 
 const Feed = () => {
-  const [post, setPost] = useState([]);
+  const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // Fetch posts
   useEffect(() => {
-    const fetchPost = async () => {
+    const fetchPosts = async () => {
       try {
-        const res = await api.get("/post");
-        setPost(res.data);
+        const res = await api.get("/feed/get-posts/1");
+        setPosts(res.data.posts || []);
       } catch (err) {
         console.error("Error fetching posts", err);
       } finally {
@@ -24,7 +24,7 @@ const Feed = () => {
       }
     };
 
-    fetchPost();
+    fetchPosts();
   }, []);
 
   return (
@@ -45,10 +45,10 @@ const Feed = () => {
           {/* POSTS */}
           {loading ? (
             <p className="text-center text-gray-500">Loading...</p>
-          ) : post.length === 0 ? (
+          ) : posts.length === 0 ? (
             <p className="text-center text-gray-500">No posts yet</p>
           ) : (
-            post.map((post) => (
+            posts.map((post) => (
               <PostCard key={post._id} post={post} />
             ))
           )}

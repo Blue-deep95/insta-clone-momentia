@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import {
   Home,
   Search,
-  Clapperboard,
+  Plus,
   Send,
   UserCircle,
 } from "lucide-react";
@@ -14,7 +14,7 @@ export default function Navbar() {
   const navItems = [
     { path: "/", icon: <Home size={26} /> },
     { path: "/search", icon: <Search size={26} /> },
-    { path: "/reels", icon: <Clapperboard size={26} /> },
+    { path: "/create-post", icon: <Plus size={26} /> },
     { path: "/messages", icon: <Send size={26} /> },
     { path: "/profile", icon: <UserCircle size={26} /> },
   ];

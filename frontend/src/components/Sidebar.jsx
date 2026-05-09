@@ -4,7 +4,7 @@ import { Link, useLocation } from "react-router-dom";
 import {
   Home,
   Search,
-  Clapperboard,
+  Plus,
   Send,
   UserCircle,
 } from "lucide-react";
@@ -24,13 +24,13 @@ export default function Sidebar() {
       icon: <Search size={26} />,
     },
     {
-      path: "/reels",
-      label: "Reels",
-      icon: <Clapperboard size={26} />,
+      path: "/create-post",
+      label: "Create Post",
+      icon: <Plus size={26} />,
     },
     {
       path: "/messages",
-      label: "Send",
+      label: "Messages",
       icon: <Send size={26} />,
     },
     {
@@ -43,7 +43,7 @@ export default function Sidebar() {
   return (
     <>
       {/* MOBILE NAVBAR */}
-      <div className="fixed bottom-0 left-0 w-full bg-black border-t border-gray-800 flex justify-around items-center py-3 z-50 md:hidden">
+      <div className="fixed bottom-0 left-0 z-50 flex w-full items-center justify-around border-t border-gray-800 bg-black py-3 md:hidden">
 
         {navItems.map((item) => (
           <Link
@@ -57,7 +57,7 @@ export default function Sidebar() {
           >
             {item.icon}
 
-            <span className="text-xs mt-1">
+            <span className="mt-1 text-xs">
               {item.label}
             </span>
           </Link>
@@ -65,10 +65,10 @@ export default function Sidebar() {
       </div>
 
       {/* TABLET/DESKTOP SIDEBAR */}
-      <div className="hidden md:flex fixed top-0 left-0 h-screen w-64 bg-black border-r border-gray-800 flex-col p-5">
+      <div className="fixed left-0 top-0 hidden h-screen w-64 flex-col border-r border-gray-800 bg-black p-5 md:flex">
 
         {/* Logo */}
-        <h1 className="text-3xl font-bold text-white mb-10">
+        <h1 className="mb-10 text-3xl font-bold text-white">
           Momentia
         </h1>
 
