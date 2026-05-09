@@ -42,6 +42,7 @@ export default function Sidebar() {
 
   return (
     <>
+<<<<<<< HEAD
       {/* MOBILE NAVBAR */}
       <div className="fixed bottom-0 left-0 z-50 flex w-full items-center justify-around border-t border-gray-800 bg-black py-3 md:hidden">
 
@@ -64,6 +65,9 @@ export default function Sidebar() {
         ))}
       </div>
 
+=======
+      
+>>>>>>> origin/main
       {/* TABLET/DESKTOP SIDEBAR */}
       <div className="fixed left-0 top-0 hidden h-screen w-64 flex-col border-r border-gray-800 bg-black p-5 md:flex">
 

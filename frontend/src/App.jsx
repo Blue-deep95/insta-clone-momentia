@@ -7,6 +7,8 @@ import ForgotPassword from "./pages/ForgotPassword.jsx"
 import Profile from "./pages/Profile.jsx"
 import CreatePost from "./pages/CreatePost.jsx"
 
+import ProtectedRoutes from './components/ProtectedRoutes.jsx'
+
 export default function App() {
   return (
     <div>
@@ -15,9 +17,16 @@ export default function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/create-post" element={<CreatePost />} />
-          <Route path="/" element={<Feed />} />
+
+          
+          <Route path="/" element={<ProtectedRoutes />}>
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/" element={<Feed />} />
+            <Route path="/create-post" element={<CreatePost />} />
+
+          </Route>
+
+
         </Routes>
       </BrowserRouter>
     </div>

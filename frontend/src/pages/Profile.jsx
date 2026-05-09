@@ -112,7 +112,8 @@ const Profile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white px-4 md:px-20 py-10">
+    <div className="min-h-screen flex justify-center py-10">
+    <div className="  bg-white px-4 md:px-20 py-10 w-[350px] sm:w-[700px]">
 
       {/* TOP SECTION */}
       <div className="flex flex-col md:flex-row items-center md:items-start gap-10">
@@ -272,6 +273,7 @@ const Profile = () => {
           )}
         </div>
       </div>
+    </div>
     </div>
   );
 };
