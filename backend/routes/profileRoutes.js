@@ -70,6 +70,25 @@ router.get("/get-profile/:id",
     }
 )
 
+// route for suggested profile cards in feed sidebar
+router.get("/get-suggested-users",
+    async (req, res) => {
+        try {
+            const currentUserId = req.user._id
+            const users = await User.find({ _id: { $ne: currentUserId } })
+                .select("username name profilePicture.profileView profilePicture.commentView")
+                .sort({ followers: -1 })
+                .limit(6)
+
+            return res.status(200).json({ users, message: "Suggested users fetched successfully" })
+        }
+        catch (err) {
+            console.log('Error in get-suggested-users route', err)
+            return res.status(500).json({ message: 'Internal server error' })
+        }
+    }
+)
+
 // route for uploading profile pics(avatars)
 router.post("/upload-avatar",
     upload.single('avatar'),

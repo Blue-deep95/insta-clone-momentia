@@ -35,6 +35,7 @@ const Profile = () => {
   const { user } = useSelector((state) => state.auth);
 
   const [profile,    setProfile]    = useState(null);
+  const [posts,      setPosts]      = useState([]);
   const [loading,    setLoading]    = useState(true);
   const [editMode,   setEditMode]   = useState(false);
   const [activeTab,  setActiveTab]  = useState("posts");
@@ -51,12 +52,29 @@ const Profile = () => {
       setForm({ name: data.name || "", bio: data.bio || "", gender: data.gender || "" });
     } catch (err) {
       console.error(err);
-    } finally {
-      setLoading(false);
     }
   };
 
-  useEffect(() => { if (user?.id) fetchProfile(); }, [user]);
+  const fetchProfilePosts = async () => {
+    try {
+      const res = await api.get(`/profile/get-userposts/${user.id}`);
+      setPosts(res.data.posts || []);
+    } catch (err) {
+      console.error("Failed to load profile posts:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const loadProfile = async () => {
+      setLoading(true);
+      await Promise.all([fetchProfile(), fetchProfilePosts()]);
+      setLoading(false);
+    };
+
+    loadProfile();
+  }, [user]);
 
   const handleChange       = (e) => setForm({ ...form, [e.target.name]: e.target.value });
   const handleAvatarChange = (e) => {
@@ -94,7 +112,7 @@ const Profile = () => {
   /* loading screen */
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f4f7fb]">
+      <div className="flex min-h-screen items-center justify-center bg-white">
         <div className="flex flex-col items-center gap-3">
           <div className="h-10 w-10 animate-spin rounded-full border-4 border-blue-100 border-t-blue-600" />
           <p className="text-sm font-medium text-gray-400">Loading profile…</p>
@@ -106,7 +124,7 @@ const Profile = () => {
   const avatarSrc = avatarPrev || profile?.profilePicture?.profileView || null;
 
   return (
-    <div className="flex min-h-screen bg-[#f4f7fb] lg:pl-20">
+    <div className="flex min-h-screen bg-white lg:pl-20">
 
       {/* ── SIDEBAR ── */}
       <div className="hidden lg:block">
@@ -117,30 +135,15 @@ const Profile = () => {
       <div className="flex-1 p-3 md:p-5 lg:p-6">
         <div className="mx-auto max-w-5xl overflow-hidden rounded-3xl bg-white shadow-xl shadow-gray-200/60">
 
-          {/* ─── COVER ─── */}
-          <div className="relative h-48 sm:h-60 md:h-72 lg:h-80">
-            <img
-              src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1400&q=80"
-              alt="cover"
-              className="h-full w-full object-cover"
-            />
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent" />
-
-            <button className="absolute right-4 top-4 flex items-center gap-2 rounded-xl bg-white/90 px-3 py-2 text-sm font-semibold text-gray-700 shadow backdrop-blur-sm transition hover:bg-white hover:shadow-md active:scale-95">
-              <Camera size={15} />
-              <span className="hidden sm:inline">Edit Cover</span>
-            </button>
-          </div>
-
           {/* ─── PROFILE SECTION ─── */}
-          <div className="relative px-4 pb-8 sm:px-6 md:px-8 lg:px-10">
+          <div className="px-4 pb-8 sm:px-6 md:px-8 lg:px-10">
 
             {/*
               LAYOUT:
               • Mobile  → column, avatar centred on top of cover edge
               • ≥ md    → row, avatar + info left, buttons right
             */}
-            <div className="-mt-14 flex flex-col items-center gap-5 sm:-mt-16 md:-mt-20 md:flex-row md:items-end md:justify-between">
+            <div className="flex flex-col items-center gap-5 md:flex-row md:items-end md:justify-between">
 
               {/* LEFT: avatar + text */}
               <div className="flex flex-col items-center gap-4 md:flex-row md:items-end">
@@ -331,9 +334,9 @@ const Profile = () => {
             {/* ─── POSTS GRID ─── */}
             <div className="mt-6">
               {activeTab === "posts" ? (
-                profile?.posts?.length > 0 ? (
+                posts.length > 0 ? (
                   <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
-                    {profile.posts.map((post, i) => (
+                    {posts.map((post, i) => (
                       <PostCard key={i} post={post} />
                     ))}
                   </div>
@@ -363,23 +366,28 @@ const StatBadge = ({ value, label }) => (
   </div>
 );
 
-const PostCard = ({ post }) => (
-  <div className="group relative overflow-hidden rounded-2xl bg-gray-100">
-    <img
-      src={post.imageUrl}
-      alt="post"
-      className="h-40 w-full object-cover transition duration-300 group-hover:scale-105 sm:h-48 md:h-56 lg:h-60"
-    />
-    <div
-      className="absolute inset-0 flex items-end bg-gradient-to-t from-black/50 via-transparent to-transparent p-3 opacity-0 transition duration-200 group-hover:opacity-100"
-    >
-      <div className="flex items-center gap-1 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-gray-800 shadow">
-        <Heart size={13} className="fill-red-500 text-red-500" />
-        {post?.likes?.length || 0}
+const PostCard = ({ post }) => {
+  const imageSrc = post.thumbImage || post.imageUrl || post.images?.[0]?.url || post.video?.url || "https://via.placeholder.com/300";
+  const likes = post.totalLikes ?? post.likes?.length ?? 0;
+
+  return (
+    <div className="group relative overflow-hidden rounded-2xl bg-gray-100">
+      <img
+        src={imageSrc}
+        alt="post"
+        className="h-40 w-full object-cover transition duration-300 group-hover:scale-105 sm:h-48 md:h-56 lg:h-60"
+      />
+      <div
+        className="absolute inset-0 flex items-end bg-gradient-to-t from-black/50 via-transparent to-transparent p-3 opacity-0 transition duration-200 group-hover:opacity-100"
+      >
+        <div className="flex items-center gap-1 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-gray-800 shadow">
+          <Heart size={13} className="fill-red-500 text-red-500" />
+          {likes}
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 const EmptyState = ({ label = "No moments yet" }) => (
   <div className="flex flex-col items-center justify-center py-20 text-gray-400">

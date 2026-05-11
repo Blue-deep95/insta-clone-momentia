@@ -5,7 +5,7 @@ import api from "../services/api";
 import Navbar from "../components/Navbar.jsx";
 import PostCard from "../components/Postcard.jsx";
 import StoryBar from "../components/Storybar.jsx";
-import Sidebar from "../components/Sidebar.jsx";
+import SuggestedProfiles from "../components/SuggestedProfiles.jsx";
 
 const Feed = () => {
   const [posts, setPosts] = useState([]);
@@ -28,16 +28,16 @@ const Feed = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-100 lg:pl-20">
 
       {/* 🔝 NAVBAR */}
       <Navbar />
 
       {/* MAIN CONTENT */}
-      <div className="mx-auto flex max-w-6xl gap-6 px-4 py-6">
+      <div className="mx-auto flex max-w-[1100px] justify-between gap-6 px-4 py-6">
 
         {/* LEFT / CENTER FEED */}
-        <div className="w-full space-y-6 md:mx-auto md:max-w-2xl lg:mx-0 lg:max-w-none">
+        <div className="w-full space-y-6 md:mx-auto md:max-w-[614px] lg:mx-0 lg:max-w-[614px]">
 
           {/* STORIES */}
           <StoryBar />
@@ -58,8 +58,10 @@ const Feed = () => {
         </div>
 
         {/* RIGHT SIDEBAR (Desktop only) */}
-        <div className="hidden flex-shrink-0 lg:block">
-          <Sidebar />
+        <div className="hidden w-80 shrink-0 lg:block lg:self-start">
+          <div className="sticky top-24">
+            <SuggestedProfiles />
+          </div>
         </div>
 
       </div>
