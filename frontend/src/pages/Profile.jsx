@@ -35,6 +35,7 @@ const Profile = () => {
   const { user } = useSelector((state) => state.auth);
 
   const [profile,    setProfile]    = useState(null);
+  const [posts,      setPosts]      = useState([]);
   const [loading,    setLoading]    = useState(true);
   const [editMode,   setEditMode]   = useState(false);
   const [activeTab,  setActiveTab]  = useState("posts");
@@ -51,12 +52,29 @@ const Profile = () => {
       setForm({ name: data.name || "", bio: data.bio || "", gender: data.gender || "" });
     } catch (err) {
       console.error(err);
-    } finally {
-      setLoading(false);
     }
   };
 
-  useEffect(() => { if (user?.id) fetchProfile(); }, [user]);
+  const fetchProfilePosts = async () => {
+    try {
+      const res = await api.get(`/profile/get-userposts/${user.id}`);
+      setPosts(res.data.posts || []);
+    } catch (err) {
+      console.error("Failed to load profile posts:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const loadProfile = async () => {
+      setLoading(true);
+      await Promise.all([fetchProfile(), fetchProfilePosts()]);
+      setLoading(false);
+    };
+
+    loadProfile();
+  }, [user]);
 
   const handleChange       = (e) => setForm({ ...form, [e.target.name]: e.target.value });
   const handleAvatarChange = (e) => {
@@ -94,7 +112,7 @@ const Profile = () => {
   /* loading screen */
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f4f7fb]">
+      <div className="flex min-h-screen items-center justify-center bg-white">
         <div className="flex flex-col items-center gap-3">
           <div className="h-10 w-10 animate-spin rounded-full border-4 border-blue-100 border-t-blue-600" />
           <p className="text-sm font-medium text-gray-400">Loading profile…</p>
@@ -106,7 +124,7 @@ const Profile = () => {
   const avatarSrc = avatarPrev || profile?.profilePicture?.profileView || null;
 
   return (
-    <div className="flex min-h-screen bg-[#f4f7fb] lg:pl-20">
+    <div className="flex min-h-screen bg-white lg:pl-20">
 
       {/* ── SIDEBAR ── */}
       <div className="hidden lg:block">
@@ -117,30 +135,15 @@ const Profile = () => {
       <div className="flex-1 p-3 md:p-5 lg:p-6">
         <div className="mx-auto max-w-5xl overflow-hidden rounded-3xl bg-white shadow-xl shadow-gray-200/60">
 
-          {/* ─── COVER ─── */}
-          <div className="relative h-48 sm:h-60 md:h-72 lg:h-80">
-            <img
-              src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1400&q=80"
-              alt="cover"
-              className="h-full w-full object-cover"
-            />
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent" />
-
-            <button className="absolute right-4 top-4 flex items-center gap-2 rounded-xl bg-white/90 px-3 py-2 text-sm font-semibold text-gray-700 shadow backdrop-blur-sm transition hover:bg-white hover:shadow-md active:scale-95">
-              <Camera size={15} />
-              <span className="hidden sm:inline">Edit Cover</span>
-            </button>
-          </div>
-
           {/* ─── PROFILE SECTION ─── */}
-          <div className="relative px-4 pb-8 sm:px-6 md:px-8 lg:px-10">
+          <div className="px-4 pb-8 sm:px-6 md:px-8 lg:px-10">
 
             {/*
               LAYOUT:
               • Mobile  → column, avatar centred on top of cover edge
               • ≥ md    → row, avatar + info left, buttons right
             */}
-            <div className="-mt-14 flex flex-col items-center gap-5 sm:-mt-16 md:-mt-20 md:flex-row md:items-end md:justify-between">
+            <div className="flex flex-col items-center gap-5 md:flex-row md:items-end md:justify-between">
 
               {/* LEFT: avatar + text */}
               <div className="flex flex-col items-center gap-4 md:flex-row md:items-end">
@@ -152,13 +155,10 @@ const Profile = () => {
                       <img
                         src={avatarSrc}
                         alt="profile"
-                        className="h-24 w-24 rounded-full object-cover
-                                   sm:h-28 sm:w-28 md:h-32 md:w-32 lg:h-36 lg:w-36"
+                        className="h-24 w-24 rounded-full object-cover sm:h-28 sm:w-28 md:h-32 md:w-32 lg:h-36 lg:w-36"
                       />
                     ) : (
-                      <div className="flex h-24 w-24 items-center justify-center rounded-full
-                                      bg-gradient-to-br from-blue-100 to-blue-200
-                                      sm:h-28 sm:w-28 md:h-32 md:w-32 lg:h-36 lg:w-36">
+                      <div className="flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-blue-100 to-blue-200 sm:h-28 sm:w-28 md:h-32 md:w-32 lg:h-36 lg:w-36">
                         <span className="text-3xl font-bold text-blue-500 md:text-4xl">
                           {profile?.name?.[0] || "U"}
                         </span>
@@ -167,8 +167,7 @@ const Profile = () => {
                   </div>
 
                   {editMode && (
-                    <label className="absolute bottom-1 right-1 cursor-pointer rounded-full bg-white p-2
-                                      shadow-lg ring-2 ring-gray-100 transition hover:bg-gray-50">
+                    <label className="absolute bottom-1 right-1 cursor-pointer rounded-full bg-white p-2 shadow-lg ring-2 ring-gray-100 transition hover:bg-gray-50">
                       <Camera size={15} className="text-gray-600" />
                       <input type="file" hidden accept="image/*" onChange={handleAvatarChange} />
                     </label>
@@ -185,9 +184,7 @@ const Profile = () => {
                       value={form.name}
                       onChange={handleChange}
                       placeholder="Your name"
-                      className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2
-                                 text-xl font-bold text-gray-900 outline-none
-                                 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 md:text-2xl"
+                      className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2 text-xl font-bold text-gray-900 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 md:text-2xl"
                     />
                   ) : (
                     <div className="flex items-center justify-center gap-2 md:justify-start">
@@ -213,17 +210,13 @@ const Profile = () => {
                           onChange={handleChange}
                           rows={2}
                           placeholder="Write your bio…"
-                          className="w-full rounded-xl border border-gray-200 bg-gray-50 p-3 text-sm
-                                     text-gray-700 outline-none resize-none
-                                     focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                          className="w-full resize-none rounded-xl border border-gray-200 bg-gray-50 p-3 text-sm text-gray-700 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
                         />
                         <select
                           name="gender"
                           value={form.gender}
                           onChange={handleChange}
-                          className="mt-2 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2
-                                     text-sm text-gray-700 outline-none
-                                     focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                          className="mt-2 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
                         >
                           <option value="">Select gender</option>
                           <option value="male">Male</option>
@@ -286,17 +279,14 @@ const Profile = () => {
                   <>
                     <button
                       onClick={handleCancel}
-                      className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold
-                                 text-gray-600 transition hover:bg-gray-50 active:scale-95"
+                      className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-50 active:scale-95"
                     >
                       Cancel
                     </button>
                     <button
                       onClick={handleSave}
                       disabled={saving}
-                      className="rounded-xl bg-blue-600 px-5 py-2 text-sm font-semibold text-white
-                                 shadow-md shadow-blue-200 transition hover:bg-blue-700
-                                 active:scale-95 disabled:opacity-60"
+                      className="rounded-xl bg-blue-600 px-5 py-2 text-sm font-semibold text-white shadow-md shadow-blue-200 transition hover:bg-blue-700 active:scale-95 disabled:opacity-60"
                     >
                       {saving ? "Saving…" : "Save"}
                     </button>
@@ -305,15 +295,12 @@ const Profile = () => {
                   <>
                     <button
                       onClick={() => setEditMode(true)}
-                      className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold
-                                 text-gray-700 transition hover:bg-gray-50 active:scale-95"
+                      className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 active:scale-95"
                     >
                       Edit Profile
                     </button>
                     <button
-                      className="flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2
-                                 text-sm font-semibold text-white shadow-md shadow-blue-200
-                                 transition hover:bg-blue-700 active:scale-95"
+                      className="flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-blue-200 transition hover:bg-blue-700 active:scale-95"
                     >
                       <Plus size={15} />
                       <span className="hidden sm:inline">Create Post</span>
@@ -325,7 +312,7 @@ const Profile = () => {
 
             {/* ─── TABS ─── */}
             <div className="mt-8 border-b border-gray-100">
-              <div className="flex gap-1 overflow-x-auto scrollbar-hide">
+              <div className="scrollbar-hide flex gap-1 overflow-x-auto">
                 {TABS.map(({ key, label, Icon }) => (
                   <button
                     key={key}
@@ -347,9 +334,9 @@ const Profile = () => {
             {/* ─── POSTS GRID ─── */}
             <div className="mt-6">
               {activeTab === "posts" ? (
-                profile?.posts?.length > 0 ? (
+                posts.length > 0 ? (
                   <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
-                    {profile.posts.map((post, i) => (
+                    {posts.map((post, i) => (
                       <PostCard key={i} post={post} />
                     ))}
                   </div>
@@ -379,27 +366,28 @@ const StatBadge = ({ value, label }) => (
   </div>
 );
 
-const PostCard = ({ post }) => (
-  <div className="group relative overflow-hidden rounded-2xl bg-gray-100">
-    <img
-      src={post.imageUrl}
-      alt="post"
-      className="h-40 w-full object-cover transition duration-300 group-hover:scale-105
-                 sm:h-48 md:h-56 lg:h-60"
-    />
-    <div
-      className="absolute inset-0 flex items-end bg-gradient-to-t from-black/50
-                 via-transparent to-transparent p-3 opacity-0 transition
-                 duration-200 group-hover:opacity-100"
-    >
-      <div className="flex items-center gap-1 rounded-full bg-white/90 px-3 py-1
-                      text-xs font-semibold text-gray-800 shadow">
-        <Heart size={13} className="fill-red-500 text-red-500" />
-        {post?.likes?.length || 0}
+const PostCard = ({ post }) => {
+  const imageSrc = post.thumbImage || post.imageUrl || post.images?.[0]?.url || post.video?.url || "https://via.placeholder.com/300";
+  const likes = post.totalLikes ?? post.likes?.length ?? 0;
+
+  return (
+    <div className="group relative overflow-hidden rounded-2xl bg-gray-100">
+      <img
+        src={imageSrc}
+        alt="post"
+        className="h-40 w-full object-cover transition duration-300 group-hover:scale-105 sm:h-48 md:h-56 lg:h-60"
+      />
+      <div
+        className="absolute inset-0 flex items-end bg-gradient-to-t from-black/50 via-transparent to-transparent p-3 opacity-0 transition duration-200 group-hover:opacity-100"
+      >
+        <div className="flex items-center gap-1 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-gray-800 shadow">
+          <Heart size={13} className="fill-red-500 text-red-500" />
+          {likes}
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 const EmptyState = ({ label = "No moments yet" }) => (
   <div className="flex flex-col items-center justify-center py-20 text-gray-400">

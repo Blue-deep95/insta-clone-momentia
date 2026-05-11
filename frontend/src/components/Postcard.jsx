@@ -24,7 +24,7 @@ const PostCard = ({ post }) => {
   };
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-md">
+    <div className="mx-auto w-full max-w-[614px] overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-md">
 
       {/* 🔝 HEADER */}
       <div className="flex items-center justify-between p-4">
@@ -35,7 +35,7 @@ const PostCard = ({ post }) => {
           {/* PROFILE IMAGE */}
           <img
             src={
-              post.authorDetails?.profilePicture.commentView ||
+              post.authorDetails?.profilePicture?.profileView ||
               "https://i.pravatar.cc/150?img=12"
             }
             alt="profile"
@@ -65,7 +65,7 @@ const PostCard = ({ post }) => {
         <img
           src={post.images[0].url}
           alt="post"
-          className="max-h-[650px] w-full object-cover"
+          className="h-auto max-h-[760px] w-full object-cover"
         />
       )}
 
@@ -74,7 +74,7 @@ const PostCard = ({ post }) => {
         <video
           src={post.video.url}
           controls
-          className="max-h-[650px] w-full object-cover"
+          className="h-auto max-h-[760px] w-full object-cover"
         />
       )}
 
