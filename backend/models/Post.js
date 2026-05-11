@@ -8,6 +8,7 @@ const PostSchema = new mongoose.Schema({
         required: true,
         index: true
     },
+
     caption: {
         type: String,
         required: true
@@ -32,7 +33,7 @@ const PostSchema = new mongoose.Schema({
 
     // thumb image for displaying posts at the same time
     // thumb image will always be the first image stored here whether for videos or 
-    // images
+    // images 
     thumbImage: String,
 
     // images if they exist are stored in array as urls both their urls and public_ids
@@ -69,6 +70,9 @@ const PostSchema = new mongoose.Schema({
 
 
 }, { timestamps: true })
+
+// similar to user.js we index text here to make searches faster
+PostSchema.index({caption:'text',hashtags:'text'})
 
 
 module.exports = mongoose.model('post', PostSchema)
