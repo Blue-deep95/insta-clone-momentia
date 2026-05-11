@@ -20,3 +20,5 @@ const deleteFromCloudinary = async(publicId) =>{
         // return res.status(500).json({message:"internal server error"})
     }
 }
+
+module.exports = deleteFromCloudinary

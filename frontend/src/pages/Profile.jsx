@@ -7,8 +7,6 @@ const Profile = () => {
 
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [updating, setUpdating] = useState(false);
 
   const [editMode, setEditMode] = useState(false);
   const [form, setForm] = useState({
@@ -22,14 +20,10 @@ const Profile = () => {
   // ✅ Fetch Profile
   const fetchProfile = async () => {
     try {
-      setLoading(true);
-      setError("");
-
       const res = await api.get(`/profile/get-profile/${user.id}`);
       const data = res.data.profile;
 
       setProfile(data);
-
       setForm({
         name: data.name || "",
         bio: data.bio || "",
@@ -37,7 +31,6 @@ const Profile = () => {
       });
     } catch (err) {
       console.error(err);
-      setError("Failed to load profile");
     } finally {
       setLoading(false);
     }
@@ -47,230 +40,166 @@ const Profile = () => {
     if (user?.id) fetchProfile();
   }, [user]);
 
-  // ✅ Handle Input
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // ✅ Update Profile
   const handleUpdate = async () => {
-    try {
-      setUpdating(true);
-      setError("");
-
-      await api.post("/profile/edit-profile", form);
-
-      setEditMode(false);
-      fetchProfile();
-    } catch (err) {
-      setError(err.response?.data?.message || "Update failed");
-    } finally {
-      setUpdating(false);
-    }
+    await api.post("/profile/edit-profile", form);
+    setEditMode(false);
+    fetchProfile();
   };
 
-  // ✅ Upload Avatar
   const handleAvatarUpload = async () => {
     if (!avatarFile) return;
 
     const formData = new FormData();
     formData.append("avatar", avatarFile);
 
-    try {
-      setUpdating(true);
-      setError("");
-
-      await api.post("/profile/upload-avatar", formData);
-
-      setAvatarFile(null);
-      fetchProfile();
-    } catch (err) {
-      setError("Upload failed");
-    } finally {
-      setUpdating(false);
-    }
+    await api.post("/profile/upload-avatar", formData);
+    fetchProfile();
   };
 
-  // ⏳ Loading
-  if (loading) {
-    return <p className="text-center mt-10">Loading profile...</p>;
-  }
-
-  // ❌ Error
-  if (error && !profile) {
-    return (
-      <div className="text-center mt-10">
-        <p className="text-red-500">{error}</p>
-        <button
-          onClick={fetchProfile}
-          className="mt-3 px-4 py-2 bg-purple-500 text-white rounded-lg"
-        >
-          Retry
-        </button>
-      </div>
-    );
-  }
+  if (loading) return <p className="text-center mt-10">Loading...</p>;
 
   return (
-    <div className="min-h-screen bg-white px-4 md:px-20 py-10">
+    <div className="min-h-screen bg-gradient-to-br from-[#eef2ff] via-white to-[#fdf2f8]">
 
-      {/* TOP SECTION */}
-      <div className="flex flex-col md:flex-row items-center md:items-start gap-10">
+      {/* DESKTOP SIDEBAR */}
+      <div className="hidden md:flex fixed left-0 top-0 h-full w-64 bg-white shadow-sm p-5 flex-col gap-6">
+        <h1 className="text-xl font-bold bg-gradient-to-r from-blue-500 to-pink-500 text-transparent bg-clip-text">
+          Momentia
+        </h1>
 
-        {/* Avatar */}
-        <div className="flex flex-col items-center">
-          <img
-            src={
-              profile?.profilePicture?.profileView ||
-              "https://via.placeholder.com/150"
-            }
-            alt="avatar"
-            className="w-32 h-32 md:w-40 md:h-40 rounded-full object-cover border"
-          />
+        <nav className="flex flex-col gap-4 text-gray-600">
+          <span>🏠 Home</span>
+          <span>🔍 Explore</span>
+          <span>🎬 Reels</span>
+          <span>💬 Messages</span>
+          <span className="font-semibold text-purple-500">👤 Profile</span>
+        </nav>
+      </div>
 
-          {editMode && (
-            <>
-              <input
-                type="file"
-                onChange={(e) => setAvatarFile(e.target.files[0])}
-                className="mt-3 text-xs"
-              />
+      {/* MAIN */}
+      <div className="md:ml-64 p-4 md:p-8">
 
-              <button
-                onClick={handleAvatarUpload}
-                disabled={!avatarFile}
-                className="mt-2 text-sm text-blue-500"
-              >
-                Upload
-              </button>
-            </>
-          )}
-        </div>
+        {/* PROFILE CARD */}
+        <div className="bg-white/80 backdrop-blur rounded-3xl shadow p-6">
 
-        {/* RIGHT SIDE */}
-        <div className="flex-1 w-full">
+          <div className="flex flex-col md:flex-row gap-6 items-center md:items-start">
 
-          {/* Username + Buttons */}
-          <div className="flex flex-col md:flex-row md:items-center gap-4">
+            {/* AVATAR */}
+            <div className="relative">
+              <div className="p-[3px] rounded-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500">
+                <img
+                  src={
+                    profile?.profilePicture?.profileView ||
+                    "https://via.placeholder.com/150"
+                  }
+                  className="w-28 h-28 md:w-36 md:h-36 rounded-full object-cover border-4 border-white"
+                />
+              </div>
 
-            {editMode ? (
-              <input
-                name="name"
-                value={form.name}
-                onChange={handleChange}
-                className="border px-3 py-1 rounded-lg text-xl font-semibold"
-              />
-            ) : (
-              <h2 className="text-2xl font-semibold">{profile?.name}</h2>
-            )}
+              <span className="absolute bottom-2 right-2 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></span>
 
-            <div className="flex gap-3">
-              {editMode ? (
+              {editMode && (
                 <>
+                  <input
+                    type="file"
+                    onChange={(e) => setAvatarFile(e.target.files[0])}
+                    className="mt-2 text-xs"
+                  />
                   <button
-                    onClick={handleUpdate}
-                    disabled={updating}
-                    className="px-4 py-1 bg-blue-500 text-white rounded-md text-sm"
+                    onClick={handleAvatarUpload}
+                    className="text-xs text-blue-500"
                   >
-                    {updating ? "Saving..." : "Save"}
-                  </button>
-
-                  <button
-                    onClick={() => setEditMode(false)}
-                    className="px-4 py-1 bg-gray-300 rounded-md text-sm"
-                  >
-                    Cancel
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button
-                    onClick={() => setEditMode(true)}
-                    className="px-4 py-1 bg-gray-200 rounded-md text-sm font-medium"
-                  >
-                    Edit profile
-                  </button>
-
-                  <button className="px-4 py-1 bg-gray-200 rounded-md text-sm font-medium">
-                    View archive
+                    Upload
                   </button>
                 </>
               )}
             </div>
-          </div>
 
-          {/* Stats */}
-          <div className="flex gap-6 mt-4 text-sm">
-            <p>
-              <span className="font-semibold">{profile?.totalPosts || 0}</span>{" "}
-              posts
-            </p>
-            <p>
-              <span className="font-semibold">{profile?.followers || 0}</span>{" "}
-              followers
-            </p>
-            <p>
-              <span className="font-semibold">{profile?.following || 0}</span>{" "}
-              following
-            </p>
-          </div>
+            {/* INFO */}
+            <div className="flex-1 w-full text-center md:text-left">
 
-          {/* Bio */}
-          <div className="mt-4 text-sm">
+              <div className="flex flex-col md:flex-row items-center gap-3">
 
-            {editMode ? (
-              <>
-                <textarea
-                  name="bio"
-                  value={form.bio}
-                  onChange={handleChange}
-                  className="w-full border rounded-lg p-2"
-                />
+                {editMode ? (
+                  <input
+                    name="name"
+                    value={form.name}
+                    onChange={handleChange}
+                    className="border px-3 py-1 rounded-lg text-xl font-semibold"
+                  />
+                ) : (
+                  <h2 className="text-2xl font-bold">{profile.name}</h2>
+                )}
 
-                <select
-                  name="gender"
-                  value={form.gender}
-                  onChange={handleChange}
-                  className="mt-2 border px-2 py-1 rounded"
+                <button
+                  onClick={() => setEditMode(!editMode)}
+                  className="px-4 py-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg text-sm"
                 >
-                  <option value="">Gender</option>
-                  <option value="male">Male</option>
-                  <option value="female">Female</option>
-                  <option value="other">Other</option>
-                </select>
-              </>
-            ) : (
-              <>
-                <p className="font-semibold">{profile?.name}</p>
-                <p className="whitespace-pre-line">
-                  {profile?.bio || "No bio yet"}
-                </p>
-              </>
-            )}
+                  {editMode ? "Cancel" : "Edit Profile"}
+                </button>
+              </div>
+
+              {/* STATS */}
+              <div className="flex justify-center md:justify-start gap-6 mt-4 text-sm">
+                <span><b>{profile?.totalPosts || 0}</b> Moments</span>
+                <span><b>{profile?.followers || 0}</b> Connections</span>
+                <span><b>{profile?.following || 0}</b> Following</span>
+              </div>
+
+              {/* BIO */}
+              <div className="mt-3 text-sm">
+                {editMode ? (
+                  <>
+                    <textarea
+                      name="bio"
+                      value={form.bio}
+                      onChange={handleChange}
+                      className="w-full border rounded-lg p-2"
+                    />
+                  </>
+                ) : (
+                  <p>{profile.bio || "No bio yet"}</p>
+                )}
+              </div>
+
+            </div>
+          </div>
+
+          {/* HIGHLIGHTS */}
+          <div className="flex gap-4 mt-6 overflow-x-auto">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="text-center">
+                <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-blue-400 via-purple-500 to-pink-500 p-[2px]">
+                  <div className="w-full h-full bg-white rounded-full"></div>
+                </div>
+                <p className="text-xs mt-1">Story</p>
+              </div>
+            ))}
           </div>
         </div>
-      </div>
 
-      {/* POSTS */}
-      <div className="mt-10 border-t pt-6">
-        <div className="grid grid-cols-3 gap-1 md:gap-4">
-
+        {/* POSTS */}
+        <div className="mt-6 grid grid-cols-3 gap-2 md:gap-4">
           {profile?.posts?.length > 0 ? (
             profile.posts.map((post, i) => (
-              <div key={i} className="aspect-square bg-gray-200">
+              <div key={i} className="aspect-square overflow-hidden rounded-lg">
                 <img
                   src={post.imageUrl}
-                  alt=""
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover hover:scale-105 transition"
                 />
               </div>
             ))
           ) : (
-            <p className="text-gray-400 text-center col-span-3">
-              No posts yet
+            <p className="col-span-3 text-center text-gray-400">
+              No moments yet
             </p>
           )}
         </div>
+
       </div>
     </div>
   );
