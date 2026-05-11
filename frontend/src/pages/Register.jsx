@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import api from "../services/api.js";
 import { useNavigate } from "react-router-dom";
-import bgLeft from "../assets/ChatGPT Image May 1, 2026, 02_49_14 PM.png";
+import bgLeft from "../assets/leftimage.png";
 
 export default function Register() {
   const navigate = useNavigate();
@@ -99,17 +99,17 @@ export default function Register() {
   }
 
   return (
-    <div className="min-h-screen grid lg:grid-cols-2">
+    <div className="grid min-h-screen lg:grid-cols-2">
 
       {/* LEFT SIDE */}
-      <div className="hidden lg:block relative h-screen">
+      <div className="relative hidden h-screen lg:block">
         <img
           src={bgLeft}
           alt="Momentia"
-          className="w-full h-full object-cover"
+          className="h-full w-full object-cover"
         />
 
-        <div className="absolute top-12 left-12 text-white">
+        <div className="absolute left-12 top-12 text-white">
           <h1 className="text-5xl font-bold leading-tight">
             Capture. <br /> Share. <br /> Connect.
           </h1>
@@ -120,7 +120,7 @@ export default function Register() {
       </div>
 
       {/* RIGHT SIDE */}
-      <div className="flex items-center justify-center h-screen px-6 bg-white">
+      <div className="flex h-screen items-center justify-center bg-white px-6">
 
         <form
           onSubmit={handleRegister}
@@ -129,7 +129,7 @@ export default function Register() {
 
           {/* HEADER */}
           <div className="text-center">
-            <div className="mx-auto mb-5 h-16 w-16 flex items-center justify-center rounded-full bg-gradient-to-r from-cyan-500 to-fuchsia-500 text-white text-2xl font-bold">
+            <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-r from-cyan-500 to-fuchsia-500 text-2xl font-bold text-white">
               M
             </div>
 
@@ -137,14 +137,14 @@ export default function Register() {
               Create your account
             </h2>
 
-            <p className="text-lg text-gray-500 mt-2">
+            <p className="mt-2 text-lg text-gray-500">
               Join Momentia and start sharing moments
             </p>
           </div>
 
           {/* ERROR */}
           {error && (
-            <p className="text-red-500 text-sm text-center">{error}</p>
+            <p className="text-center text-sm text-red-500">{error}</p>
           )}
 
           {/* NAME */}
@@ -153,7 +153,7 @@ export default function Register() {
             name="name"
             placeholder="Full name"
             onChange={handleChange}
-            className="w-full px-5 py-4 text-lg rounded-xl border border-gray-300 focus:ring-2 focus:ring-purple-300 outline-none"
+            className="w-full rounded-xl border border-gray-300 px-5 py-4 text-lg outline-none focus:ring-2 focus:ring-purple-300"
             required
           />
 
@@ -164,7 +164,7 @@ export default function Register() {
               name="email"
               placeholder="Email address"
               onChange={handleChange}
-              className="w-full px-5 py-4 text-lg rounded-xl border border-gray-300 focus:ring-2 focus:ring-purple-300 outline-none"
+              className="w-full rounded-xl border border-gray-300 px-5 py-4 text-lg outline-none focus:ring-2 focus:ring-purple-300"
               required
             />
 
@@ -172,7 +172,7 @@ export default function Register() {
               type="button"
               onClick={handleSendOtp}
               disabled={otpStatus === "sending" || otpStatus === "verified"}
-              className="px-5 py-3 rounded-xl bg-purple-500 text-white text-sm font-medium"
+              className="rounded-xl bg-purple-500 px-5 py-3 text-sm font-medium text-white"
             >
               {otpStatus === "sending" ? "Sending..." : "Send OTP"}
             </button>
@@ -186,14 +186,14 @@ export default function Register() {
                 placeholder="Enter OTP"
                 value={otp}
                 onChange={(e) => setOtp(e.target.value)}
-                className="w-full px-5 py-4 text-lg rounded-xl border border-gray-300"
+                className="w-full rounded-xl border border-gray-300 px-5 py-4 text-lg"
               />
 
               <button
                 type="button"
                 onClick={handleVerifyOtp}
                 disabled={otpStatus === "verifying"}
-                className="px-5 py-3 rounded-xl bg-green-500 text-white text-sm"
+                className="rounded-xl bg-green-500 px-5 py-3 text-sm text-white"
               >
                 {otpStatus === "verifying" ? "Checking..." : "Verify"}
               </button>
@@ -202,7 +202,7 @@ export default function Register() {
 
           {/* VERIFIED */}
           {otpStatus === "verified" && (
-            <p className="text-green-600 text-base text-center">
+            <p className="text-center text-base text-green-600">
               Email verified successfully ✅
             </p>
           )}
@@ -213,14 +213,14 @@ export default function Register() {
             name="password"
             placeholder="Create password"
             onChange={handleChange}
-            className="w-full px-5 py-4 text-lg rounded-xl border border-gray-300"
+            className="w-full rounded-xl border border-gray-300 px-5 py-4 text-lg"
             required
             disabled={otpStatus !== "verified"}
           />
 
           {/* REGISTER */}
           <button
-            className="w-full py-4 text-lg rounded-xl bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 text-white font-semibold"
+            className="w-full rounded-xl bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 py-4 text-lg font-semibold text-white"
             disabled={otpStatus !== "verified" || loading}
           >
             {loading ? "Creating account..." : "Sign Up"}
@@ -231,7 +231,7 @@ export default function Register() {
             Already have an account?{" "}
             <span
               onClick={() => navigate("/login")}
-              className="text-purple-600 cursor-pointer font-medium"
+              className="cursor-pointer font-medium text-purple-600"
             >
               Sign in
             </span>

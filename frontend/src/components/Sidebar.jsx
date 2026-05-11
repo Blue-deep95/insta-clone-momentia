@@ -42,7 +42,6 @@ export default function Sidebar() {
 
   return (
     <>
-<<<<<<< HEAD
       {/* MOBILE NAVBAR */}
       <div className="fixed bottom-0 left-0 z-50 flex w-full items-center justify-around border-t border-gray-800 bg-black py-3 md:hidden">
 
@@ -65,24 +64,15 @@ export default function Sidebar() {
         ))}
       </div>
 
-=======
       
->>>>>>> origin/main
       {/* TABLET/DESKTOP SIDEBAR */}
-      <div className="fixed left-0 top-0 hidden h-screen w-64 flex-col border-r border-gray-800 bg-black p-5 md:flex">
-
-        {/* Logo */}
-        <h1 className="mb-10 text-3xl font-bold text-white">
-          Momentia
-        </h1>
-
-        {/* Menu Items */}
-        <div className="flex flex-col gap-6">
+      <div className="fixed bottom-0 left-0 top-14 hidden w-20 flex-col overflow-hidden border-r border-gray-800 bg-black p-4 transition-all duration-200 hover:w-64 md:flex">
+        <div className="mt-4 flex flex-col gap-4">
           {navItems.map((item) => (
             <Link
               key={item.path}
               to={item.path}
-              className={`flex items-center gap-4 p-3 rounded-lg transition-all duration-200 ${
+              className={`group flex items-center gap-4 rounded-lg px-3 py-4 transition-all duration-200 ${
                 location.pathname === item.path
                   ? "bg-gray-800 text-white"
                   : "text-gray-400 hover:bg-gray-900 hover:text-white"
@@ -90,7 +80,7 @@ export default function Sidebar() {
             >
               {item.icon}
 
-              <span className="text-lg">
+              <span className="hidden text-lg font-medium group-hover:inline-flex">
                 {item.label}
               </span>
             </Link>
