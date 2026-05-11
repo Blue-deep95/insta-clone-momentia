@@ -70,7 +70,7 @@ const Profile = () => {
 
      {/* RIGHT SIDEBAR (Desktop only) */}
              <div className="hidden flex-shrink-0 lg:block">
-               <Sidebar />
+               <Sidebar profile={profile} />
              </div>
 
       {/* MAIN */}

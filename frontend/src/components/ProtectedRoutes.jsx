@@ -3,7 +3,7 @@ import { Navigate,Outlet } from "react-router-dom";
 import { useSelector } from "react-redux";
 import Navbar from "./Navbar";
 import SideBar from "./Sidebar"
-import TopBar from "./Topbar"
+// import TopBar from "./Topbar"
 
 export default function ProtectedRoutes() {
 
@@ -18,7 +18,7 @@ export default function ProtectedRoutes() {
 
   return (
     <>
-      <TopBar/>
+      {/* <TopBar/> */}
       <SideBar/>
       <Navbar/>
       <Outlet/>

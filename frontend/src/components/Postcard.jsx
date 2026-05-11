@@ -35,7 +35,7 @@ const PostCard = ({ post }) => {
           {/* PROFILE IMAGE */}
           <img
             src={
-              post.authorDetails?.profilePicture.commentView ||
+              post.authorDetails?.profilePicture?.profileView ||
               "https://i.pravatar.cc/150?img=12"
             }
             alt="profile"
