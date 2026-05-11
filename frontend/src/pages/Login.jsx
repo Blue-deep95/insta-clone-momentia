@@ -42,7 +42,7 @@ const Login = () => {
         accessToken: data.accessToken
       }));
 
-      navigate("/profile");
+      navigate("/");
     } catch (err) {
       setError(err.response?.data?.message || "Login failed");
     } finally {
