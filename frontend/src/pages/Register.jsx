@@ -40,7 +40,7 @@ export default function Register() {
       setOtpStatus("sending");
 
       const res = await api.post("/user/send-otp", {
-        email: formData.email,
+        email: formData.email.trim(),
       });
 
       if (res.status === 200 || res.status === 201) {
@@ -61,15 +61,16 @@ export default function Register() {
       setOtpStatus("verifying");
 
       const res = await api.post("/user/verify-otp", {
-        email: formData.email,
-        otp,
+        email: formData.email.trim(),
+        otp: otp.trim(),
       });
 
       if (res.status === 200) {
         setOtpStatus("verified");
       }
-    } catch {
-      setError("Invalid or expired OTP");
+    } catch (err) {
+      console.error("OTP verification error:", err.response?.data);
+      setError(err.response?.data?.message || "Invalid or expired OTP");
       setOtpStatus("sent");
     }
   }
