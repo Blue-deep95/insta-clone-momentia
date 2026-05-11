@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from "react";
 import api from "../services/api";
 import { useSelector } from "react-redux";
+import Navbar from "../components/Navbar.jsx";
+import Sidebar from "../components/Sidebar.jsx";
+
 
 const Profile = () => {
   const { user } = useSelector((state) => state.auth);
@@ -60,47 +63,35 @@ const Profile = () => {
     fetchProfile();
   };
 
-  if (loading) return <p className="text-center mt-10">Loading...</p>;
+  if (loading) return <p className="mt-10 text-center">Loading...</p>;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#eef2ff] via-white to-[#fdf2f8]">
 
-      {/* DESKTOP SIDEBAR */}
-      <div className="hidden md:flex fixed left-0 top-0 h-full w-64 bg-white shadow-sm p-5 flex-col gap-6">
-        <h1 className="text-xl font-bold bg-gradient-to-r from-blue-500 to-pink-500 text-transparent bg-clip-text">
-          Momentia
-        </h1>
-
-        <nav className="flex flex-col gap-4 text-gray-600">
-          <span>🏠 Home</span>
-          <span>🔍 Explore</span>
-          <span>🎬 Reels</span>
-          <span>💬 Messages</span>
-          <span className="font-semibold text-purple-500">👤 Profile</span>
-        </nav>
-      </div>
+     {/* RIGHT SIDEBAR (Desktop only) */}
+             <div className="hidden flex-shrink-0 lg:block">
+               <Sidebar />
+             </div>
 
       {/* MAIN */}
-      <div className="md:ml-64 p-4 md:p-8">
+      <div className="mt-10 p-4 md:ml-64 md:p-8">
 
         {/* PROFILE CARD */}
-        <div className="bg-white/80 backdrop-blur rounded-3xl shadow p-6">
+        <div className="rounded-3xl bg-white/80 p-6 shadow backdrop-blur">
 
-          <div className="flex flex-col md:flex-row gap-6 items-center md:items-start">
+          <div className="flex flex-col items-center gap-6 md:flex-row md:items-start">
 
             {/* AVATAR */}
             <div className="relative">
-              <div className="p-[3px] rounded-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500">
+              <div className="rounded-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 p-[3px]">
                 <img
                   src={
                     profile?.profilePicture?.profileView ||
                     "https://via.placeholder.com/150"
                   }
-                  className="w-28 h-28 md:w-36 md:h-36 rounded-full object-cover border-4 border-white"
+                  className="h-28 w-28 rounded-full border-4 border-white object-cover md:h-36 md:w-36"
                 />
               </div>
-
-              <span className="absolute bottom-2 right-2 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></span>
 
               {editMode && (
                 <>
@@ -120,16 +111,16 @@ const Profile = () => {
             </div>
 
             {/* INFO */}
-            <div className="flex-1 w-full text-center md:text-left">
+            <div className="w-full flex-1 text-center md:text-left">
 
-              <div className="flex flex-col md:flex-row items-center gap-3">
+              <div className="flex flex-col items-center gap-3 md:flex-row">
 
                 {editMode ? (
                   <input
                     name="name"
                     value={form.name}
                     onChange={handleChange}
-                    className="border px-3 py-1 rounded-lg text-xl font-semibold"
+                    className="rounded-lg border px-3 py-1 text-xl font-semibold"
                   />
                 ) : (
                   <h2 className="text-2xl font-bold">{profile.name}</h2>
@@ -137,14 +128,14 @@ const Profile = () => {
 
                 <button
                   onClick={() => setEditMode(!editMode)}
-                  className="px-4 py-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg text-sm"
+                  className="rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 px-4 py-1 text-sm text-white"
                 >
                   {editMode ? "Cancel" : "Edit Profile"}
                 </button>
               </div>
 
               {/* STATS */}
-              <div className="flex justify-center md:justify-start gap-6 mt-4 text-sm">
+              <div className="mt-4 flex justify-center gap-6 text-sm md:justify-start">
                 <span><b>{profile?.totalPosts || 0}</b> Moments</span>
                 <span><b>{profile?.followers || 0}</b> Connections</span>
                 <span><b>{profile?.following || 0}</b> Following</span>
@@ -158,7 +149,7 @@ const Profile = () => {
                       name="bio"
                       value={form.bio}
                       onChange={handleChange}
-                      className="w-full border rounded-lg p-2"
+                      className="w-full rounded-lg border p-2"
                     />
                   </>
                 ) : (
@@ -169,17 +160,6 @@ const Profile = () => {
             </div>
           </div>
 
-          {/* HIGHLIGHTS */}
-          <div className="flex gap-4 mt-6 overflow-x-auto">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="text-center">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-blue-400 via-purple-500 to-pink-500 p-[2px]">
-                  <div className="w-full h-full bg-white rounded-full"></div>
-                </div>
-                <p className="text-xs mt-1">Story</p>
-              </div>
-            ))}
-          </div>
         </div>
 
         {/* POSTS */}
@@ -189,7 +169,7 @@ const Profile = () => {
               <div key={i} className="aspect-square overflow-hidden rounded-lg">
                 <img
                   src={post.imageUrl}
-                  className="w-full h-full object-cover hover:scale-105 transition"
+                  className="h-full w-full object-cover transition hover:scale-105"
                 />
               </div>
             ))
