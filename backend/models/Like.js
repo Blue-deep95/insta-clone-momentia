@@ -9,6 +9,13 @@ const LikeSchema = new mongoose.Schema({
         index:true,
         required:true
     },
+    // include additional parentPost to simplfy the removal
+    // of likes belonging to the same posts
+    parentPost:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:'post',
+        index:true,
+    },
     likeType:{
         type:String,
         enum:["post","comment"]

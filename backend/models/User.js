@@ -43,6 +43,9 @@ const UserSchema = new mongoose.Schema({
         profileView: String,
         commentView: String
     },
+
+    // for saved posts instead of creating seperate schema we can simply use 
+    // this to store the postids of posts that user saved in this array.
     savedPosts: [
         {
             type: mongoose.Schema.Types.ObjectId,

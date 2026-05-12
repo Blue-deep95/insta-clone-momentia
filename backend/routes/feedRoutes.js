@@ -89,7 +89,8 @@ router.get("/get-posts/:page",
                         'authorDetails.password': 0,
                         'authorDetails.email': 0,
                         'authorDetails.refreshToken': 0,
-                        'authorDetails.otp': 0
+                        'authorDetails.otp': 0,
+                        'authourDetails.savedPosts':0
                     }
                 }
             ]

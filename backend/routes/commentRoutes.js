@@ -175,9 +175,11 @@ router.post("/toggle-like/:commentid",
                 return res.status(200).json({ message: "Comment unliked successfully", isLiked: false })
             } else {
                 // If it doesn't exist, LIKE it
+                // INCLUDING NEW parentPost field to help us find and delete likes faster
                 const newLike = new Like({
                     author: user._id,
                     likeType: 'comment',
+                    parentPost: comment.post,
                     commentTarget: commentid
                 })
                 await newLike.save()

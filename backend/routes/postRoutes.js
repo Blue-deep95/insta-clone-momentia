@@ -139,6 +139,11 @@ router.delete("/delete-post/:id",
             // also update the user's total post count in user's schema
             await User.findByIdAndUpdate(user._id, { $inc: { totalPosts: -1 } })
 
+            // also delete all the comments and likes associated with the post
+            await Like.deleteMany({parentPost:post._id})
+            await Comment.deleteMany({post:post._id})
+
+
             return res.status(200).json({ message: "Post deleted successfully!" })
         }
         catch (err) {
@@ -272,6 +277,7 @@ router.post("/toggle-like/:postid",
                 const newLike = new Like({
                     author: user._id,
                     likeType: 'post',
+                    parentPost:postid,
                     postTarget: postid
                 })
                 await newLike.save()
@@ -281,6 +287,43 @@ router.post("/toggle-like/:postid",
         }
         catch (err) {
             console.log("Error in /toggle-like route 😂", err)
+            return res.status(500).json({ message: "Internal server error" })
+        }
+    }
+)
+
+// this route is for saving posts and unsaving them
+router.post("/toggle-savedposts/:postid",
+    async (req, res) => {
+        try {
+            const { postid } = req.params
+            const userId = req.user._id
+
+            // check the validity of posts 
+            const postExists = await Post.exists({ _id: postid })
+            if (!postExists) {
+                // remove the post from the user object if it does exist (cleanup)
+                await User.findByIdAndUpdate(userId, { $pull: { savedPosts: postid } })
+                return res.status(404).json({ message: "Target post does not exist!" })
+            }
+
+            // Check if the post is already saved
+            const user = await User.findById(userId).select('savedPosts')
+            const isSaved = user.savedPosts.some(id => id.toString() === postid)
+
+            if (isSaved) {
+                // remove the post 
+                await User.findByIdAndUpdate(userId, { $pull: { savedPosts: postid } })
+                return res.status(200).json({ message: "Post removed from saved posts successfully", isSaved: false })
+            }
+            else {
+                // add the post
+                await User.findByIdAndUpdate(userId, { $addToSet: { savedPosts: postid } })
+                return res.status(200).json({ message: "Post added to saved posts successfully!", isSaved: true })
+            }
+        }
+        catch (err) {
+            console.log('Error in toggle-savedposts route', err)
             return res.status(500).json({ message: "Internal server error" })
         }
     }

@@ -15,8 +15,25 @@ const deleteFromCloudinary = require('../utils/deleteFromCloudinary')
 
 // prepare multer
 const upload = multer({
-    storage: multer.memoryStorage()
+    storage: multer.memoryStorage(),
+    limits:{fileSize:10*1024*1024} // limit profile uploads just to 10mb per picture
 })
+
+// route for getting only the user saved posts 
+router.get("/get-savedposts/:id",
+    async(req,res) =>{
+        try{
+            const user = req.user
+            const savedPosts = await User.findById(user._id).select("savedPosts")
+
+            return res.status(200).json({savedPosts,message:"Here are saved posts"})
+        }
+        catch(err){
+            console.log('error in get-savedposts route',err)
+            return res.status(500).json({message:"Internal server error"})
+        }
+    }
+)
 
 
 // **need to write another route here that only sends the user's posts only
@@ -43,23 +60,29 @@ router.get("/get-userposts/:id",
 router.get("/get-profile/:id",
     async (req, res) => {
         try {
+            // user here is stored in req.user
+            const user = req.user
             const { id } = req.params
             // try to find the user in db
-            const target = await User.findById(id).select('-password -email -otp -refreshToken ')
+            const target = await User.findById(id)
+                                .select('-password -email -otp -refreshToken -savedPosts - blockedUsers ')
             if (!target) {
                 return res.status(404).json({ message: "User not found" })
             }
             // case where the request is from the user 
-            if (target._id.toString() === req.user._id.toString()) {
-                return res.status(200).json({ self: true, following: false, profile: target, message: "Your profile fetched succesfully" })
+            if (target._id.toString() === user._id.toString()) {
+                return res.status(200).
+                json({ self: true, following: false, profile: target, message: "Your profile fetched succesfully" })
             }
             // for fetching other's profile we must also check whether the user is following the target or not
-            const isUserFollowingTarget = await Follow.findOne({ host: req.user._id, target: target._id })
+            const isUserFollowingTarget = await Follow.findOne({ host: user._id, target: target._id })
 
             let following = false
             if (isUserFollowingTarget) {
                 following = true
             }
+            // null the savedposts to prevent sending unnecessary information 
+        
 
             return res.status(200).json({ self: false, following, profile: target, message: "profile search succesful" })
         }
@@ -71,12 +94,13 @@ router.get("/get-profile/:id",
 )
 
 // route for suggested profile cards in feed sidebar
+// either need some work for this route or remove it completetly
 router.get("/get-suggested-users",
     async (req, res) => {
         try {
             const currentUserId = req.user._id
             const users = await User.find({ _id: { $ne: currentUserId } })
-                .select("username name profilePicture.profileView profilePicture.commentView")
+                .select("_id username name profilePicture.profileView profilePicture.commentView")
                 .sort({ followers: -1 })
                 .limit(6)
 
