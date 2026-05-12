@@ -5,6 +5,21 @@ import api from "../services/api";
 const SuggestedProfiles = () => {
   const [profiles, setProfiles] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [followed, setFollowed] = useState({});
+  const [followLoading, setFollowLoading] = useState({});
+
+  const handleFollow = async (targetId) => {
+    setFollowLoading((prev) => ({ ...prev, [targetId]: true }));
+
+    try {
+      await api.post("/follow/follow-user", { targetId });
+      setFollowed((prev) => ({ ...prev, [targetId]: true }));
+    } catch (err) {
+      console.error("Could not follow user:", err.response?.data || err);
+    } finally {
+      setFollowLoading((prev) => ({ ...prev, [targetId]: false }));
+    }
+  };
 
   useEffect(() => {
     const fetchSuggestedProfiles = async () => {
@@ -69,8 +84,17 @@ const SuggestedProfiles = () => {
                   </div>
                 </div>
 
-                <button className="rounded-full bg-blue-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-blue-700">
-                  Follow
+                <button
+                  type="button"
+                  onClick={() => handleFollow(profile._id)}
+                  disabled={followLoading[profile._id]}
+                  className="rounded-full bg-blue-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-400"
+                >
+                  {followLoading[profile._id]
+                    ? "Please wait"
+                    : followed[profile._id]
+                    ? "Following"
+                    : "Follow"}
                 </button>
               </div>
             );
