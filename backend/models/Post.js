@@ -67,8 +67,6 @@ const PostSchema = new mongoose.Schema({
         }
     ]
 
-
-
 }, { timestamps: true })
 
 // similar to user.js we index text here to make searches faster
