@@ -10,7 +10,8 @@ const Like = require('../models/Like');
 
 
 // need to implement get-comments route here 
-router.get("/get-comments/:postid",
+// this is only for top-level comments 
+router.get("/get-comments/:postid/:page",
     async(req,res) =>{
         try{
 
@@ -18,6 +19,19 @@ router.get("/get-comments/:postid",
         catch(err){
             console.log("error in get-comments route",err)
             return res.status(500).json({message:"Internal server error"})
+        }
+    }
+)
+
+// seperate get-replies route instead of get-comments route to simplfy frontend logic
+router.get("/get-replies/:postid/:parentid/:page",
+    async(req,res)=>{
+        try{
+
+        }   
+        catch(err){
+            console.log('Error in get-replies route',err)
+            return res.status(500).json({message:"Internal server Error"})
         }
     }
 )

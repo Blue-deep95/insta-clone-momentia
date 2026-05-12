@@ -147,18 +147,71 @@ Retrieves public profile information for a user.
     ```
 
 ### 2. Get User Posts
-Retrieves all posts belonging to a specific user.
-*   **URL:** `/profile/get-userposts/:id`
+Retrieves posts belonging to a specific user (defaults to authenticated user if no ID is provided).
+*   **URL:** `/profile/get-userposts/:id?`
 *   **Method:** `GET`
+*   **Query Parameters:**
+    *   `page` (Number, optional, default: 1)
+    *   `limit` (Number, optional, default: 12)
 *   **Success Response (200):**
     ```json
     {
-      "posts": [ { ... } ],
+      "posts": [
+        {
+          "_id": "...",
+          "thumbImage": "...",
+          "mediaType": "image/video",
+          "totalLikes": 0,
+          "totalComments": 0
+        }
+      ],
       "message": "User posts fetched successfully"
     }
     ```
 
-### 3. Upload Avatar
+### 3. Get Saved Posts
+Retrieves posts saved by a specific user (defaults to authenticated user if no ID is provided).
+*   **URL:** `/profile/get-savedposts/:id?`
+*   **Method:** `GET`
+*   **Query Parameters:**
+    *   `page` (Number, optional, default: 1)
+    *   `limit` (Number, optional, default: 12)
+*   **Success Response (200):**
+    ```json
+    {
+      "savedPosts": [
+        {
+          "_id": "...",
+          "thumbImage": "...",
+          "mediaType": "image/video",
+          "totalLikes": 0,
+          "totalComments": 0
+        }
+      ],
+      "message": "Saved posts retrieved successfully"
+    }
+    ```
+*   **Empty Response (200):**
+    ```json
+    {
+      "savedPosts": [],
+      "message": "No saved posts found"
+    }
+    ```
+
+### 4. Get Suggested Users
+Retrieves a list of suggested users to follow.
+*   **URL:** `/profile/get-suggested-users`
+*   **Method:** `GET`
+*   **Success Response (200):**
+    ```json
+    {
+      "users": [ { ... } ],
+      "message": "Suggested users fetched successfully"
+    }
+    ```
+
+### 5. Upload Avatar
 Uploads and processes a profile picture via Cloudinary.
 *   **URL:** `/profile/upload-avatar`
 *   **Method:** `POST`
@@ -169,7 +222,7 @@ Uploads and processes a profile picture via Cloudinary.
     { "message": "Profile picture updated succesfully" }
     ```
 
-### 4. Edit Profile
+### 6. Edit Profile
 Updates the authenticated user's profile details.
 *   **URL:** `/profile/edit-profile`
 *   **Method:** `POST`
@@ -187,7 +240,7 @@ Updates the authenticated user's profile details.
     { "message": "Profile update succesful" }
     ```
 
-### 5. Get Followers
+### 7. Get Followers
 Retrieves the list of followers for a specific user.
 *   **URL:** `/profile/get-followers/:id`
 *   **Method:** `GET`
@@ -201,7 +254,7 @@ Retrieves the list of followers for a specific user.
     }
     ```
 
-### 6. Get Following
+### 8. Get Following
 Retrieves the list of users a specific user is following.
 *   **URL:** `/profile/get-following/:id`
 *   **Method:** `GET`
@@ -238,6 +291,7 @@ Retrieves paginated posts for the main feed with interaction metadata.
           "video": { "url": "...", "public_id": "..." },
           "authorDetails": { "username": "...", "profilePicture": { ... } },
           "isLiked": true/false,
+          "isSaved": true/false,
           "isFollowing": true/false,
           "totalLikes": 0,
           "totalComments": 0
@@ -297,7 +351,31 @@ Searches for posts by caption or hashtags with pagination.
 ## 📝 Posts (`/post`)
 *All routes in this section require a valid Bearer Token.*
 
-### 1. Upload Post
+### 1. Get Single Post
+Retrieves a single post by ID with full metadata (author, liked/saved status, etc.).
+*   **URL:** `/post/get-singlepost/:postid`
+*   **Method:** `GET`
+*   **Success Response (200):**
+    ```json
+    {
+      "post": {
+        "_id": "...",
+        "author": "...",
+        "caption": "...",
+        "mediaType": "image/video",
+        "thumbImage": "...",
+        "authorDetails": { ... },
+        "isLiked": true/false,
+        "isSaved": true/false,
+        "isFollowing": true/false,
+        "totalLikes": 0,
+        "totalComments": 0
+      },
+      "message": "Post fetched successfully"
+    }
+    ```
+
+### 2. Upload Post
 Uploads a new post with images or a video.
 *   **URL:** `/post/upload-post`
 *   **Method:** `POST`
@@ -310,7 +388,7 @@ Uploads a new post with images or a video.
     { "message": "Post created succesfully!" }
     ```
 
-### 2. Delete Post
+### 3. Delete Post
 Deletes an existing post and its associated media from Cloudinary.
 *   **URL:** `/post/delete-post/:id`
 *   **Method:** `DELETE`
@@ -320,7 +398,7 @@ Deletes an existing post and its associated media from Cloudinary.
     { "message": "Post deleted successfully!" }
     ```
 
-### 3. Update Post
+### 4. Update Post
 Updates the caption or media of an existing post.
 *   **URL:** `/post/update-post`
 *   **Method:** `POST`
@@ -334,7 +412,7 @@ Updates the caption or media of an existing post.
     { "message": "Post updated successfully!", "post": { ... } }
     ```
 
-### 4. Toggle Like
+### 5. Toggle Like
 Likes or unlikes a post.
 *   **URL:** `/post/toggle-like/:postid`
 *   **Method:** `POST`
@@ -342,6 +420,16 @@ Likes or unlikes a post.
 *   **Success Response (200):**
     ```json
     { "message": "Post liked/unliked successfully", "isLiked": true/false }
+    ```
+
+### 6. Toggle Saved Posts
+Saves or unsaves a post for the authenticated user.
+*   **URL:** `/post/toggle-savedposts/:postid`
+*   **Method:** `POST`
+*   **Parameters:** `postid` (Post ID)
+*   **Success Response (200):**
+    ```json
+    { "message": "Post added to/removed from saved posts successfully", "isSaved": true/false }
     ```
 
 ---
@@ -360,7 +448,7 @@ Retrieves comments for a specific post.
       "message": "Comments fetched successfully"
     }
     ```
-*   *Note: Currently work in progress in the backend.*
+*   *Note: Currently work in progress in the backend (logic is empty).*
 
 ### 2. Create Comment
 Adds a new comment or a reply to an existing comment.
@@ -372,7 +460,7 @@ Adds a new comment or a reply to an existing comment.
       "content": "Comment text",
       "postid": "...",
       "parent": "...", (Optional, ID of parent comment for replies)
-      "reference": "..." (Optional, ID of comment being replied to)
+      "reference": "..." (Optional, ID of user being replied to)
     }
     ```
 *   **Success Response (200):**
