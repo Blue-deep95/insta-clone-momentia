@@ -124,7 +124,7 @@ router.get("/get-profile/:id",
             const { id } = req.params
             // try to find the user in db
             const target = await User.findById(id)
-                .select('-password -email -otp -refreshToken -savedPosts - blockedUsers ')
+                .select('-password -email -otp -refreshToken -savedPosts -blockedUsers')
             if (!target) {
                 return res.status(404).json({ message: "User not found" })
             }
@@ -270,8 +270,19 @@ router.get("/get-followers/:id",
         try {
             const { id } = req.params // This is the ID of the user whose followers we want to see
 
+            if (!mongoose.Types.ObjectId.isValid(id)) {
+                return res.status(400).json({ message: "Invalid user ID" });
+            }
+
+            const page = parseInt(req.query.page) || 1;
+            const limit = parseInt(req.query.limit) || 50;
+            const skip = (page - 1) * limit;
+
             const followers = await Follow.aggregate([
                 { $match: { target: new mongoose.Types.ObjectId(id) } },
+                { $sort: { createdAt: -1 } },
+                { $skip: skip },
+                { $limit: limit },
                 {
                     $lookup: {
                         from: 'users',
@@ -286,6 +297,7 @@ router.get("/get-followers/:id",
                         _id: 0,
                         userId: '$followerData._id',
                         username: '$followerData.username',
+                        name: '$followerData.name',
                         profilePicture: '$followerData.profilePicture.commentView'
                     }
                 }
@@ -310,8 +322,19 @@ router.get("/get-following/:id",
         try {
             const { id } = req.params // This is the ID of the user whose following list we want to see
 
+            if (!mongoose.Types.ObjectId.isValid(id)) {
+                return res.status(400).json({ message: "Invalid user ID" });
+            }
+
+            const page = parseInt(req.query.page) || 1;
+            const limit = parseInt(req.query.limit) || 50;
+            const skip = (page - 1) * limit;
+
             const following = await Follow.aggregate([
                 { $match: { host: new mongoose.Types.ObjectId(id) } },
+                { $sort: { createdAt: -1 } },
+                { $skip: skip },
+                { $limit: limit },
                 {
                     $lookup: {
                         from: 'users',
@@ -326,6 +349,7 @@ router.get("/get-following/:id",
                         _id: 0,
                         userId: '$followingData._id',
                         username: '$followingData.username',
+                        name: '$followingData.name',
                         profilePicture: '$followingData.profilePicture.commentView'
                     }
                 }

@@ -241,28 +241,44 @@ Updates the authenticated user's profile details.
     ```
 
 ### 7. Get Followers
-Retrieves the list of followers for a specific user.
+Retrieves the list of followers for a specific user with pagination.
 *   **URL:** `/profile/get-followers/:id`
 *   **Method:** `GET`
+*   **Query Parameters:**
+    *   `page` (Number, optional, default: 1)
+    *   `limit` (Number, optional, default: 50)
 *   **Success Response (200):**
     ```json
     {
       "followers": [
-        { "userId": "...", "username": "...", "profilePicture": "..." }
+        { 
+          "userId": "...", 
+          "username": "...", 
+          "name": "...", 
+          "profilePicture": "..." 
+        }
       ],
       "message": "Followers list retrieved successfully"
     }
     ```
 
 ### 8. Get Following
-Retrieves the list of users a specific user is following.
+Retrieves the list of users a specific user is following with pagination.
 *   **URL:** `/profile/get-following/:id`
 *   **Method:** `GET`
+*   **Query Parameters:**
+    *   `page` (Number, optional, default: 1)
+    *   `limit` (Number, optional, default: 50)
 *   **Success Response (200):**
     ```json
     {
       "following": [
-        { "userId": "...", "username": "...", "profilePicture": "..." }
+        { 
+          "userId": "...", 
+          "username": "...", 
+          "name": "...", 
+          "profilePicture": "..." 
+        }
       ],
       "message": "Following list retrieved successfully"
     }
