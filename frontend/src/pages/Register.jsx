@@ -110,14 +110,14 @@ export default function Register() {
           className="h-full w-full object-cover"
         />
 
-        <div className="absolute left-12 top-12 text-white">
+        {/* <div className="absolute left-12 top-12 text-white">
           <h1 className="text-5xl font-bold leading-tight">
             Capture. <br /> Share. <br /> Connect.
           </h1>
           <p className="mt-4 text-lg opacity-90">
             Your moments matter here.
           </p>
-        </div>
+        </div> */}
       </div>
 
       {/* RIGHT SIDE */}
