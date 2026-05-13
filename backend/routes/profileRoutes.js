@@ -321,6 +321,7 @@ router.get("/get-following/:id",
     async (req, res) => {
         try {
             const { id } = req.params // This is the ID of the user whose following list we want to see
+            const currentUserId = new mongoose.Types.ObjectId(req.user._id);
 
             if (!mongoose.Types.ObjectId.isValid(id)) {
                 return res.status(400).json({ message: "Invalid user ID" });
@@ -345,12 +346,37 @@ router.get("/get-following/:id",
                 },
                 { $unwind: '$followingData' },
                 {
+                    $lookup: {
+                        from: 'follows',
+                        let: { targetId: '$followingData._id' },
+                        pipeline: [
+                            {
+                                $match: {
+                                    $expr: {
+                                        $and: [
+                                            { $eq: ['$host', currentUserId] },
+                                            { $eq: ['$target', '$$targetId'] }
+                                        ]
+                                    }
+                                }
+                            }
+                        ],
+                        as: 'followStatus'
+                    }
+                },
+                {
+                    $addFields: {
+                        isFollowing: { $gt: [{ $size: '$followStatus' }, 0] }
+                    }
+                },
+                {
                     $project: {
                         _id: 0,
                         userId: '$followingData._id',
                         username: '$followingData.username',
                         name: '$followingData.name',
-                        profilePicture: '$followingData.profilePicture.commentView'
+                        profilePicture: '$followingData.profilePicture.commentView',
+                        isFollowing: 1
                     }
                 }
             ]);
