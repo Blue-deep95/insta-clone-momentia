@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import {
   Home,
   Search,
-  Clapperboard,
+  Plus,
   Send,
   UserCircle,
 } from "lucide-react";
@@ -14,15 +14,15 @@ export default function Navbar() {
   const navItems = [
     { path: "/", icon: <Home size={26} /> },
     { path: "/search", icon: <Search size={26} /> },
-    { path: "/reels", icon: <Clapperboard size={26} /> },
+    { path: "/create-post", icon: <Plus size={26} /> },
     { path: "/messages", icon: <Send size={26} /> },
     { path: "/profile", icon: <UserCircle size={26} /> },
   ];
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 w-full bg-white border-t shadow-md z-50">
+    <div className="fixed bottom-0 left-0 z-50 w-full border-t bg-white shadow-md md:hidden">
       {/* Mobile-style bar but stretched */}
-      <div className="max-w-2xl mx-auto flex justify-between items-center px-6 h-16">
+      <div className="mx-auto flex h-16 max-w-2xl items-center justify-between px-6">
         {navItems.map((item, index) => {
           const isActive = location.pathname === item.path;
 

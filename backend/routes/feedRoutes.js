@@ -27,6 +27,8 @@ router.get("/get-posts/:page",
                 // First join the author data
                 {
                     $lookup: {
+                        // Ok this a mongodb feauture where named collections change from singular
+                        // word to plural
                         from: 'users',
                         localField: 'author',
                         foreignField: '_id',
@@ -55,6 +57,26 @@ router.get("/get-posts/:page",
                         as: 'likedStatus'
                     }
                 },
+                // Check if the current user saved the post
+                {
+                    $lookup: {
+                        from: 'users',
+                        let: { postId: '$_id' },
+                        pipeline: [
+                            {
+                                $match: {
+                                    $expr: {
+                                        $and: [
+                                            { $eq: ['$_id', new mongoose.Types.ObjectId(user._id)] },
+                                            { $in: ['$$postId', '$savedPosts'] }
+                                        ]
+                                    }
+                                }
+                            }
+                        ],
+                        as: 'savedStatus'
+                    }
+                },
                 // check if the user follows the author or not
                 {
                     $lookup: {
@@ -78,6 +100,7 @@ router.get("/get-posts/:page",
                 {
                     $addFields: {
                         isLiked: { $gt: [{ $size: '$likedStatus' }, 0] },
+                        isSaved: { $gt: [{ $size: '$savedStatus' }, 0] },
                         isFollowing: { $gt: [{ $size: '$followStatus' }, 0] }
                     }
                 },
@@ -85,11 +108,14 @@ router.get("/get-posts/:page",
                 {
                     $project: {
                         likedStatus: 0,
+                        savedStatus: 0,
                         followStatus: 0,
                         'authorDetails.password': 0,
                         'authorDetails.email': 0,
                         'authorDetails.refreshToken': 0,
-                        'authorDetails.otp': 0
+                        'authorDetails.otp': 0,
+                        'authorDetails.savedPosts': 0,
+                        'authorDetails.blockedUsers': 0
                     }
                 }
             ]

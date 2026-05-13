@@ -2,14 +2,11 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api.js";
 
-// importing redux toolkit functions
 import { useDispatch } from "react-redux";
 import { login } from "../slices/authSlice.js";
 
-// importing the background image
-import loginBg from "../assets/bg-login.png.png";
+import loginBg from "../assets/leftimage.png";
 
-// the login page
 const Login = () => {
 
   const dispatch = useDispatch();
@@ -19,155 +16,184 @@ const Login = () => {
     email: "",
     password: "",
   });
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-
+  // HANDLE INPUT
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    setForm({
+      ...form,
+      [e.target.name]: e.target.value,
+    });
   };
 
+  // LOGIN
   const handleSubmit = async (e) => {
+
     e.preventDefault();
+
     setLoading(true);
     setError("");
 
     try {
-      console.log('reached try block');
+
       const res = await api.post("/user/login", form);
+
       const data = res.data;
 
-      dispatch(login({
-        user: data.user,
-        accessToken: data.accessToken
-      }));
+      dispatch(
+        login({
+          user: data.user,
+          accessToken: data.accessToken,
+        })
+      );
 
-      navigate("/profile");
+      navigate("/");
+
     } catch (err) {
-      setError(err.response?.data?.message || "Login failed");
+
+      setError(
+        err.response?.data?.message || "Login failed"
+      );
+
     } finally {
+
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex">
+    <div className="grid min-h-screen lg:grid-cols-2">
 
-      {/*  LEFT SIDE IMAGE */}
-      <div
-        className="hidden md:block md:w-1/2 bg-cover bg-center relative"
-        style={{ backgroundImage: `url(${loginBg})` }}
-      >
-        {/* Overlay */}
-        <div className="absolute inset-0 bg-black/20"></div>
+      {/* LEFT SIDE */}
+      <div className="relative hidden h-screen items-center justify-center bg-white lg:flex">
 
-        {/* Optional Text */}
-        <div className="relative z-10 flex items-end h-full p-10 text-white">
-          <h1 className="text-3xl font-bold leading-snug">
-            Capture. Share. Connect.
-          </h1>
-        </div>
+        <img
+          src={loginBg}
+          alt="Momentia"
+          className="h-full w-full object-cover"
+        />
+
       </div>
 
-      {/* RIGHT SIDE LOGIN */}
-      <div className="w-full md:w-1/2 flex items-center justify-center px-6 bg-gradient-to-br from-slate-100 to-slate-200">
+      {/* RIGHT SIDE */}
+      <div className="flex h-screen items-center justify-center bg-white px-6">
 
-        <div className="bg-white/80 backdrop-blur-lg shadow-2xl rounded-3xl p-8 w-full max-w-md border border-gray-200">
+        <form
+          onSubmit={handleSubmit}
+          className="w-full max-w-lg space-y-6"
+        >
 
-          {/* Logo */}
-          <div className="flex flex-col items-center mb-6">
-            <div className="text-4xl font-bold bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 text-transparent bg-clip-text">
-              Momentia
+          {/* HEADER */}
+          <div className="text-center">
+
+            <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-r from-cyan-500 to-fuchsia-500 text-2xl font-bold text-white">
+              M
             </div>
-            <p className="text-gray-500 text-sm mt-1">
-              Welcome back 👋
+
+            <h2 className="text-4xl font-semibold text-gray-800">
+              Welcome Back
+            </h2>
+
+            <p className="mt-2 text-lg text-gray-500">
+              Login to continue your journey
             </p>
           </div>
 
-          {/* Error */}
+          {/* ERROR */}
           {error && (
-            <p className="text-red-500 text-center text-sm mb-4">{error}</p>
+            <p className="text-center text-sm text-red-500">
+              {error}
+            </p>
           )}
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
+          {/* EMAIL */}
+          <input
+            type="email"
+            name="email"
+            placeholder="Email address"
+            value={form.email}
+            onChange={handleChange}
+            required
+            className="w-full rounded-xl border border-gray-300 px-5 py-4 text-lg outline-none focus:ring-2 focus:ring-purple-300"
+          />
 
-            {/* Email */}
-            <input
-              type="email"
-              name="email"
-              placeholder="Email"
-              value={form.email}
-              onChange={handleChange}
-              required
-              className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-purple-400 outline-none transition"
-            />
+          {/* PASSWORD */}
+          <input
+            type="password"
+            name="password"
+            placeholder="Password"
+            value={form.password}
+            onChange={handleChange}
+            required
+            className="w-full rounded-xl border border-gray-300 px-5 py-4 text-lg outline-none focus:ring-2 focus:ring-purple-300"
+          />
 
-            {/* Password */}
-            <input
-              type="password"
-              name="password"
-              placeholder="Password"
-              value={form.password}
-              onChange={handleChange}
-              required
-              className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-purple-400 outline-none transition"
-            />
+          {/* FORGOT PASSWORD */}
+          <div className="flex justify-end">
 
-            {/* Forgot Password */}
-            <div className="flex justify-end">
-              <span
-                onClick={() => navigate("/forgot-password")}
-                className="text-sm text-purple-600 cursor-pointer hover:underline"
-              >
-                Forgot Password?
-              </span>
-            </div>
-
-            {/* Button */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 rounded-xl font-semibold text-white 
-              bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 
-              hover:opacity-90 transition"
+            <span
+              onClick={() => navigate("/forgot-password")}
+              className="cursor-pointer text-sm font-medium text-purple-600 hover:underline"
             >
-              {loading ? "Logging in..." : "Login"}
-            </button>
-          </form>
-
-          {/* Divider */}
-          <div className="flex items-center my-5">
-            <div className="flex-grow h-px bg-gray-300"></div>
-            <span className="px-3 text-gray-400 text-sm">or</span>
-            <div className="flex-grow h-px bg-gray-300"></div>
+              Forgot Password?
+            </span>
           </div>
 
-         {/* Social Login */}
-          {/* <div className="space-y-2">
-            <button className="w-full py-2 border rounded-lg hover:bg-gray-50">
+          {/* LOGIN BUTTON */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full rounded-xl bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 py-4 text-lg font-semibold text-white transition hover:opacity-90"
+          >
+            {loading ? "Logging in..." : "Login"}
+          </button>
+
+          {/* DIVIDER */}
+          <div className="flex items-center">
+
+            <div className="h-px flex-1 bg-gray-300"></div>
+
+            <span className="px-4 text-sm text-gray-400">
+              or
+            </span>
+
+            <div className="h-px flex-1 bg-gray-300"></div>
+          </div>
+
+          {/* SOCIAL LOGIN */}
+          {/*
+          <div className="space-y-3">
+
+            <button className="w-full rounded-xl border py-3 hover:bg-gray-50">
               Continue with Google
             </button>
-            <button className="w-full py-2 border rounded-lg hover:bg-gray-50">
+
+            <button className="w-full rounded-xl border py-3 hover:bg-gray-50">
               Continue with Facebook
             </button>
-          </div>*/ }
 
-          {/* Register Link */}
-          <p className="text-center text-sm mt-5">
-            Don't have an account?{" "}
+          </div>
+          */}
+
+          {/* REGISTER LINK */}
+          <p className="text-center text-base text-gray-500">
+
+            Don’t have an account?{" "}
+
             <span
               onClick={() => navigate("/register")}
-              className="text-purple-600 font-medium cursor-pointer"
+              className="cursor-pointer font-medium text-purple-600"
             >
-              Register
+              Sign Up
             </span>
           </p>
 
-        </div>
+        </form>
       </div>
     </div>
   );
-}
+};
 
-export default Login
+export default Login;
