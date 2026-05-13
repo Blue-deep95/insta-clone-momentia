@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from "react";
 import api from "../services/api";
 import { useSelector } from "react-redux";
+import { useParams } from "react-router-dom";
 import Sidebar from "../components/Sidebar.jsx";
-import Fallow from "./Fallow.jsx";
+import FollowersModal from "../components/FollowersModal.jsx";
+import FollowingModal from "../components/FollowingModal.jsx";
+import FollowButton from "../components/FollowButton.jsx";
 
 import {
   Camera,
@@ -32,10 +35,16 @@ const TABS = [
 
 const Profile = () => {
   const { user } = useSelector((state) => state.auth);
+  const { userId } = useParams();
+
+  // Determine which user ID to fetch: the URL param or the current user
+  const profileUserId = userId || user?.id;
+  const isOwnProfile = !userId || userId === user?.id;
 
   const [profile, setProfile] = useState(null);
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isFollowing, setIsFollowing] = useState(false);
 
   const [editMode, setEditMode] = useState(false);
   const [activeTab, setActiveTab] = useState("posts");
@@ -57,11 +66,16 @@ const Profile = () => {
   /* FETCH PROFILE */
   const fetchProfile = async () => {
     try {
-      const res = await api.get(`/profile/get-profile/${user.id}`);
+      const res = await api.get(`/profile/get-profile/${profileUserId}`);
 
       const data = res.data.profile;
 
       setProfile(data);
+      
+      // Check if current user is following this profile (for other users' profiles)
+      if (res.data.following !== undefined) {
+        setIsFollowing(res.data.following);
+      }
 
       setForm({
         name: data.name || "",
@@ -76,7 +90,7 @@ const Profile = () => {
   /* FETCH POSTS */
   const fetchProfilePosts = async () => {
     try {
-      const res = await api.get(`/profile/get-userposts/${user.id}`);
+      const res = await api.get(`/profile/get-userposts/${profileUserId}`);
 
       setPosts(res.data.posts || []);
     } catch (err) {
@@ -86,7 +100,7 @@ const Profile = () => {
 
   /* LOAD */
   useEffect(() => {
-    if (!user?.id) return;
+    if (!profileUserId) return;
 
     const loadProfile = async () => {
       setLoading(true);
@@ -100,7 +114,7 @@ const Profile = () => {
     };
 
     loadProfile();
-  }, [user]);
+  }, [profileUserId]);
 
   /* INPUT CHANGE */
   const handleChange = (e) => {
@@ -401,42 +415,54 @@ const Profile = () => {
               {/* BUTTONS */}
               <div className="flex flex-shrink-0 items-center gap-3">
 
-                {editMode ? (
-                  <>
-                    <button
-                      onClick={handleCancel}
-                      className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-50"
-                    >
-                      Cancel
-                    </button>
+                {isOwnProfile ? (
+                  editMode ? (
+                    <>
+                      <button
+                        onClick={handleCancel}
+                        className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-50"
+                      >
+                        Cancel
+                      </button>
 
-                    <button
-                      onClick={handleSave}
-                      disabled={saving}
-                      className="rounded-xl bg-blue-600 px-5 py-2 text-sm font-semibold text-white"
-                    >
-                      {saving ? "Saving…" : "Save"}
-                    </button>
-                  </>
+                      <button
+                        onClick={handleSave}
+                        disabled={saving}
+                        className="rounded-xl bg-blue-600 px-5 py-2 text-sm font-semibold text-white"
+                      >
+                        {saving ? "Saving…" : "Save"}
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => setEditMode(true)}
+                        className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700"
+                      >
+                        Edit Profile
+                      </button>
+
+                      <button className="flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white">
+
+                        <Plus size={15} />
+
+                        <span className="hidden sm:inline">
+                          Create Post
+                        </span>
+
+                      </button>
+                    </>
+                  )
                 ) : (
-                  <>
-                    <button
-                      onClick={() => setEditMode(true)}
-                      className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700"
-                    >
-                      Edit Profile
-                    </button>
-
-                    <button className="flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white">
-
-                      <Plus size={15} />
-
-                      <span className="hidden sm:inline">
-                        Create Post
-                      </span>
-
-                    </button>
-                  </>
+                  // Show Follow/Unfollow button for other users' profiles
+                  <FollowButton 
+                    userId={profileUserId}
+                    isFollowing={isFollowing}
+                    onFollowStatusChange={(status) => {
+                      // Refresh profile to update follower count
+                      fetchProfile();
+                    }}
+                  />
                 )}
 
               </div>
@@ -493,21 +519,18 @@ const Profile = () => {
 
       {/* FOLLOWERS MODAL */}
       {showFollowers && (
-        <Fallow
-          title="Followers"
-          type="followers"
-          userId={user?.id}
+        <FollowersModal
+          userId={profileUserId}
           onClose={() => setShowFollowers(false)}
         />
       )}
 
       {/* FOLLOWING MODAL */}
       {showFollowing && (
-        <Fallow
-          title="Following"
-          type="following"
-          userId={user?.id}
+        <FollowingModal
+          userId={profileUserId}
           onClose={() => setShowFollowing(false)}
+          onFollowingUpdate={fetchProfile}
         />
       )}
 

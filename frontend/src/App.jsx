@@ -21,6 +21,7 @@ export default function App() {
           
           <Route path="/" element={<ProtectedRoutes />}>
             <Route path="/profile" element={<Profile />} />
+            <Route path="/profile/:userId" element={<Profile />} />
             <Route path="/" element={<Feed />} />
             <Route path="/create-post" element={<CreatePost />} />
 
