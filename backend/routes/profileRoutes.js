@@ -20,7 +20,7 @@ const upload = multer({
 })
 
 // route for getting only the user saved posts 
-router.get("/get-savedposts/:id?",
+router.get("/get-savedposts/:id",
     async (req, res) => {
         try {
             // IMPORTANT: for now make it so that any user can see other users saved posts
@@ -76,7 +76,7 @@ router.get("/get-savedposts/:id?",
 
 // **need to write another route here that only sends the user's posts only
 // for profile view
-router.get("/get-userposts/:id?",
+router.get("/get-userposts/:id",
     async (req, res) => {
         try {
             // IMPORTANT : For now we are letting any user see other user posts 

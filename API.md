@@ -354,6 +354,7 @@ Searches for posts by caption or hashtags with pagination.
         {
           "_id": "...",
           "author": "...",
+          "caption": "...",
           "thumbImage": "...",
           "totalLikes": 0
         }
