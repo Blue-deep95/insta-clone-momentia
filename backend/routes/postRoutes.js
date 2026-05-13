@@ -2,6 +2,7 @@
 // theese routes are mainly for uploading,updating and deleting posts
 const express = require('express')
 const multer = require('multer')
+const mongoose = require('mongoose')
 
 const router = express.Router()
 const User = require('../models/User')
@@ -16,6 +17,136 @@ let upload = multer({
     storage: multer.memoryStorage(),
     limits: { fileSize: 30 * 1024 * 1024 } // gives 30mb limit for file uploads
 })
+
+// this route is for getting a singular post and it's contents with additional information
+// like 
+router.get("/get-singlepost/:postid",
+    async (req, res) => {
+        try {
+            const user = req.user
+            const { postid } = req.params
+
+            if (!mongoose.Types.ObjectId.isValid(postid)) {
+                return res.status(400).json({ message: "Invalid post id" })
+            }
+
+            // try to find if the post exists or not 
+            const postExists = await Post.exists({ _id: postid })
+            if (!postExists) {
+                return res.status(404).json({ post: null, message: "Post does not exist or has been removed" })
+            }
+
+            // if post exists, perform a complex join operation
+            const result = await Post.aggregate([
+                { $match: { _id: new mongoose.Types.ObjectId(postid) } },
+                // Join the author data
+                {
+                    $lookup: {
+                        from: 'users',
+                        localField: 'author',
+                        foreignField: '_id',
+                        as: 'authorDetails'
+                    }
+                },
+                { $unwind: '$authorDetails' },
+                // Check if the current user liked the post
+                {
+                    $lookup: {
+                        from: 'likes',
+                        let: { postId: '$_id' },
+                        pipeline: [
+                            {
+                                $match: {
+                                    $expr: {
+                                        $and: [
+                                            { $eq: ['$postTarget', '$$postId'] },
+                                            { $eq: ['$author', new mongoose.Types.ObjectId(user._id)] },
+                                            { $eq: ['$likeType', 'post'] }
+                                        ]
+                                    }
+                                }
+                            }
+                        ],
+                        as: 'likedStatus'
+                    }
+                },
+                // Check if the current user saved the post
+                {
+                    $lookup: {
+                        from: 'users',
+                        let: { postId: '$_id' },
+                        pipeline: [
+                            {
+                                $match: {
+                                    $expr: {
+                                        $and: [
+                                            { $eq: ['$_id', new mongoose.Types.ObjectId(user._id)] },
+                                            { $in: ['$$postId', '$savedPosts'] }
+                                        ]
+                                    }
+                                }
+                            }
+                        ],
+                        as: 'savedStatus'
+                    }
+                },
+                // Check if the user follows the author
+                {
+                    $lookup: {
+                        from: 'follows',
+                        let: { authorId: '$author' },
+                        pipeline: [
+                            {
+                                $match: {
+                                    $expr: {
+                                        $and: [
+                                            { $eq: ['$target', '$$authorId'] },
+                                            { $eq: ['$host', new mongoose.Types.ObjectId(user._id)] }
+                                        ]
+                                    }
+                                }
+                            }
+                        ],
+                        as: 'followStatus'
+                    }
+                },
+                // Transform joined arrays into boolean flags
+                {
+                    $addFields: {
+                        isLiked: { $gt: [{ $size: '$likedStatus' }, 0] },
+                        isSaved: { $gt: [{ $size: '$savedStatus' }, 0] },
+                        isFollowing: { $gt: [{ $size: '$followStatus' }, 0] }
+                    }
+                },
+                // Cleanup sensitive data before sending
+                {
+                    $project: {
+                        likedStatus: 0,
+                        savedStatus: 0,
+                        followStatus: 0,
+                        'authorDetails.password': 0,
+                        'authorDetails.email': 0,
+                        'authorDetails.refreshToken': 0,
+                        'authorDetails.otp': 0,
+                        'authorDetails.savedPosts': 0,
+                        'authorDetails.blockedUsers': 0
+                    }
+                }
+            ])
+
+            if (result.length === 0) {
+                return res.status(404).json({ message: "Post not found" })
+            }
+
+            return res.status(200).json({ post: result[0], message: "Post fetched successfully" })
+
+        }
+        catch (err) {
+            console.log('Error in get-singlepost route', err)
+            return res.status(500).json({ message: "Internal server error" })
+        }
+    }
+)
 
 // this route is mainly used for uploading new posts it accepts either 5 images or 1 video
 router.post("/upload-post",
@@ -138,6 +269,12 @@ router.delete("/delete-post/:id",
             await Post.findByIdAndDelete(post._id)
             // also update the user's total post count in user's schema
             await User.findByIdAndUpdate(user._id, { $inc: { totalPosts: -1 } })
+
+            // also delete all the comments and likes associated with the post
+            // since adding new parentPost field to Likes schema it works perfectly
+            await Like.deleteMany({parentPost:post._id})
+            await Comment.deleteMany({post:post._id})
+
 
             return res.status(200).json({ message: "Post deleted successfully!" })
         }
@@ -272,6 +409,7 @@ router.post("/toggle-like/:postid",
                 const newLike = new Like({
                     author: user._id,
                     likeType: 'post',
+                    parentPost:postid,
                     postTarget: postid
                 })
                 await newLike.save()
@@ -281,6 +419,43 @@ router.post("/toggle-like/:postid",
         }
         catch (err) {
             console.log("Error in /toggle-like route 😂", err)
+            return res.status(500).json({ message: "Internal server error" })
+        }
+    }
+)
+
+// this route is for saving posts and unsaving them
+router.post("/toggle-savedposts/:postid",
+    async (req, res) => {
+        try {
+            const { postid } = req.params
+            const userId = req.user._id
+
+            // check the validity of posts 
+            const postExists = await Post.exists({ _id: postid })
+            if (!postExists) {
+                // remove the post from the user object if it does exist (cleanup)
+                await User.findByIdAndUpdate(userId, { $pull: { savedPosts: postid } })
+                return res.status(404).json({ message: "Target post does not exist!" })
+            }
+
+            // Check if the post is already saved
+            const user = await User.findById(userId).select('savedPosts')
+            const isSaved = user.savedPosts.some(id => id.toString() === postid)
+
+            if (isSaved) {
+                // remove the post 
+                await User.findByIdAndUpdate(userId, { $pull: { savedPosts: postid } })
+                return res.status(200).json({ message: "Post removed from saved posts successfully", isSaved: false })
+            }
+            else {
+                // add the post
+                await User.findByIdAndUpdate(userId, { $addToSet: { savedPosts: postid } })
+                return res.status(200).json({ message: "Post added to saved posts successfully!", isSaved: true })
+            }
+        }
+        catch (err) {
+            console.log('Error in toggle-savedposts route', err)
             return res.status(500).json({ message: "Internal server error" })
         }
     }
