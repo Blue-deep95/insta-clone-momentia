@@ -5,11 +5,8 @@ import Login from "./pages/Login.jsx"
 import Feed from "./pages/Feed.jsx"
 import ForgotPassword from "./pages/ForgotPassword.jsx"
 import Profile from "./pages/Profile.jsx"
-<<<<<<< HEAD
 import SearchPage from "./pages/SearchPage.jsx"
-=======
 import CreatePost from "./pages/CreatePost.jsx"
->>>>>>> main
 
 import ProtectedRoutes from './components/ProtectedRoutes.jsx'
 
@@ -27,11 +24,8 @@ export default function App() {
             <Route path="/profile" element={<Profile />} />
             <Route path="/search" element={<SearchPage />} />
             <Route path="/" element={<Feed />} />
-<<<<<<< HEAD
-=======
             <Route path="/create-post" element={<CreatePost />} />
 
->>>>>>> main
           </Route>
 
 
