@@ -20,7 +20,7 @@ const upload = multer({
 })
 
 // route for getting only the user saved posts 
-router.get("/get-savedposts/:id?",
+router.get("/get-savedposts/:id",
     async (req, res) => {
         try {
             // IMPORTANT: for now make it so that any user can see other users saved posts
@@ -76,7 +76,7 @@ router.get("/get-savedposts/:id?",
 
 // **need to write another route here that only sends the user's posts only
 // for profile view
-router.get("/get-userposts/:id?",
+router.get("/get-userposts/:id",
     async (req, res) => {
         try {
             // IMPORTANT : For now we are letting any user see other user posts 
@@ -321,6 +321,7 @@ router.get("/get-following/:id",
     async (req, res) => {
         try {
             const { id } = req.params // This is the ID of the user whose following list we want to see
+            const currentUserId = new mongoose.Types.ObjectId(req.user._id);
 
             if (!mongoose.Types.ObjectId.isValid(id)) {
                 return res.status(400).json({ message: "Invalid user ID" });
@@ -345,12 +346,37 @@ router.get("/get-following/:id",
                 },
                 { $unwind: '$followingData' },
                 {
+                    $lookup: {
+                        from: 'follows',
+                        let: { targetId: '$followingData._id' },
+                        pipeline: [
+                            {
+                                $match: {
+                                    $expr: {
+                                        $and: [
+                                            { $eq: ['$host', currentUserId] },
+                                            { $eq: ['$target', '$$targetId'] }
+                                        ]
+                                    }
+                                }
+                            }
+                        ],
+                        as: 'followStatus'
+                    }
+                },
+                {
+                    $addFields: {
+                        isFollowing: { $gt: [{ $size: '$followStatus' }, 0] }
+                    }
+                },
+                {
                     $project: {
                         _id: 0,
                         userId: '$followingData._id',
                         username: '$followingData.username',
                         name: '$followingData.name',
-                        profilePicture: '$followingData.profilePicture.commentView'
+                        profilePicture: '$followingData.profilePicture.commentView',
+                        isFollowing: 1
                     }
                 }
             ]);
