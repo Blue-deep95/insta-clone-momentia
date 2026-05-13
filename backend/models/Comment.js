@@ -33,7 +33,7 @@ const CommentSchema = new mongoose.Schema({
         index: true
     },
 
-    // contend of the comment
+    // content of the comment
     content:{
         type:String,
         required:true
