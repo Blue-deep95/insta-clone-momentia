@@ -12,26 +12,70 @@ const Like = require('../models/Like');
 // need to implement get-comments route here 
 // this is only for top-level comments 
 router.get("/get-comments/:postid/:page",
-    async(req,res) =>{
-        try{
+    async (req, res) => {
+        try {
+            const { postid, page } = req.params
+            const user = req.user
+            if (!postid || !page) {
+                return res.status(400).json({ message: "Invalid parameters" })
+            }
+            // aggregate 
+            // need to work on this later
+            // const comments = await Comment.aggregate([
+            //     { $match: { post: { $eq: postid } }, author: { $ne: user._id } },
+            //     // first join the users data to get author details
+            //     {
+            //         $lookup: {
+            //             from: 'users',
+            //             localField: 'author',
+            //             foreignField: '_id',
+            //             as: 'authorDetails'
+            //         }
+            //     },
+            //     { $unwind: '$authorDetails' },
+            //     // lookup the data from Likes to tell if the user liked that comment or not
+            //     // we are storing like status here
+            //     {
+            //         $lookup: {
+            //             from: 'likes',
+            //             pipeline: [{
+            //                 $lookup: {
+            //                     $match: {
+            //                         $expr: {
+            //                             $and: [
+            //                                 { $eq: ['$likeType', 'comment'] },
+            //                                 { $eq: ['$author', new mongoose.Types.ObjectId()] }
+            //                             ]
+            //                         }
+            //                     }
+            //                 }
+            //             }
+            //             ],
+            //             as: 'likedStatus'
+            //         }
+            //     }
+
+
+            // ])
+
 
         }
-        catch(err){
-            console.log("error in get-comments route",err)
-            return res.status(500).json({message:"Internal server error"})
+        catch (err) {
+            console.log("error in get-comments route", err)
+            return res.status(500).json({ message: "Internal server error" })
         }
     }
 )
 
 // seperate get-replies route instead of get-comments route to simplfy frontend logic
 router.get("/get-replies/:postid/:parentid/:page",
-    async(req,res)=>{
-        try{
+    async (req, res) => {
+        try {
 
-        }   
-        catch(err){
-            console.log('Error in get-replies route',err)
-            return res.status(500).json({message:"Internal server Error"})
+        }
+        catch (err) {
+            console.log('Error in get-replies route', err)
+            return res.status(500).json({ message: "Internal server Error" })
         }
     }
 )
@@ -42,7 +86,7 @@ router.post("/create-comment",
         try {
             const { content, postid, parent, reference } = req.body;
             const user = req.user;
-            
+
             if (!postid || !content) {
                 return res.status(400).json({ message: "Invalid comment" });
             }
@@ -81,46 +125,46 @@ router.post("/create-comment",
 );
 
 router.put("/update-comment",
-    async(req,res) =>{
-        try{
+    async (req, res) => {
+        try {
             const user = req.user
-            const {content,commentId} = req.body
+            const { content, commentId } = req.body
 
-            if(!content || !commentId){
-                return res.status(400).json({message:"Invalid operation"})
+            if (!content || !commentId) {
+                return res.status(400).json({ message: "Invalid operation" })
             }
             // get the comment 
             const comment = await Comment.findById(commentId)
-            if(!comment){
-                return res.status(404).json({message:'Comment not found'})
+            if (!comment) {
+                return res.status(404).json({ message: 'Comment not found' })
             }
 
-            if(comment.author.toString() !== user._id.toString()){
-                return res.status(403).json({message:'Unauthorized to edit this comment'})
+            if (comment.author.toString() !== user._id.toString()) {
+                return res.status(403).json({ message: 'Unauthorized to edit this comment' })
             }
 
             comment.content = content
             await comment.save()
 
-            return res.status(200).json({message:"Comment edit succesful"})
+            return res.status(200).json({ message: "Comment edit succesful" })
 
         }
-        catch(err){
-            console.log("error in update-comment route",err)
-            return res.status(500).json({message:"Internal server error"})
+        catch (err) {
+            console.log("error in update-comment route", err)
+            return res.status(500).json({ message: "Internal server error" })
         }
     }
 )
 
 router.delete("/delete-comment/:commentId",
-    async(req,res) =>{
-        try{
+    async (req, res) => {
+        try {
             const user = req.user
             const { commentId } = req.params
-            
+
             // Find the comment first to get post and parent info
             const comment = await Comment.findById(commentId)
-            
+
             if (!comment) {
                 return res.status(404).json({ message: "Comment not found" })
             }
@@ -145,13 +189,13 @@ router.delete("/delete-comment/:commentId",
             // 4. Decrement post's comment count by the total number of deleted documents (parent + children)
             await Post.findByIdAndUpdate(comment.post, { $inc: { totalComments: -totalDeletedCount } })
 
-            return res.status(200).json({ 
-                message: "Comment and its replies deleted successfully", 
-                deletedCount: totalDeletedCount 
+            return res.status(200).json({
+                message: "Comment and its replies deleted successfully",
+                deletedCount: totalDeletedCount
             })
-            
+
         }
-        catch(err) {
+        catch (err) {
             console.log("Error in delete-comment route", err)
             return res.status(500).json({ message: "Internal server error" })
         }
@@ -176,8 +220,8 @@ router.post("/toggle-like/:commentid",
             }
 
             // Check if the user already liked the comment
-            const existingLike = await Like.findOne({ 
-                author: user._id, 
+            const existingLike = await Like.findOne({
+                author: user._id,
                 commentTarget: commentid,
                 likeType: 'comment'
             })
