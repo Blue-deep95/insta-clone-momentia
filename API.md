@@ -548,3 +548,13 @@ Unfollows a user and updates counts.
     ```json
     { "message": "Unfollowed succesfully" }
     ```
+
+### 3. Remove Follower
+Removes a user from your own followers list and updates counts.
+*   **URL:** `/follow/remove-follower/:hostId`
+*   **Method:** `DELETE`
+*   **Parameters:** `hostId` (User ID of the follower to be removed)
+*   **Success Response (200):**
+    ```json
+    { "message": "User removed from your followers" }
+    ```
