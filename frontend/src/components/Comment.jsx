@@ -19,6 +19,9 @@ const CommentItem = ({ comment, postId, onReply }) => {
   const [hasMoreReplies, setHasMoreReplies] = useState(comment.totalReplies > 0);
   const [loadingReplies, setLoadingReplies] = useState(false);
 
+  // Map backend field authorDetails to a consistent internal format if needed
+  const author = comment.authorDetails || comment.author;
+
   const toggleLike = async () => {
     try {
       const res = await api.post(`/comment/toggle-like/${comment._id}`);
@@ -34,10 +37,12 @@ const CommentItem = ({ comment, postId, onReply }) => {
     setLoadingReplies(true);
     try {
       const res = await api.get(`/comment/get-replies/${postId}/${comment._id}/${repliesPage}`);
-      if (res.data && Array.isArray(res.data) && res.data.length > 0) {
-        setReplies(prev => [...prev, ...res.data]);
+      // Backend returns { replies: [...] }
+      const newReplies = res.data.replies;
+      if (newReplies && Array.isArray(newReplies) && newReplies.length > 0) {
+        setReplies(prev => [...prev, ...newReplies]);
         setRepliesPage(prev => prev + 1);
-        if (res.data.length < 10) setHasMoreReplies(false);
+        if (newReplies.length < 25) setHasMoreReplies(false);
       } else {
         setHasMoreReplies(false);
       }
@@ -62,7 +67,7 @@ const CommentItem = ({ comment, postId, onReply }) => {
         {/* LEFT */}
         <div className="flex gap-3 flex-1">
           <img
-            src={comment.author?.profilePicture?.commentView || "https://i.pravatar.cc/150?img=50"}
+            src={author?.profilePicture?.commentView || author?.profilePicture?.profileView || "https://i.pravatar.cc/150?img=50"}
             alt=""
             className="w-9 h-9 rounded-full object-cover"
           />
@@ -70,7 +75,7 @@ const CommentItem = ({ comment, postId, onReply }) => {
           <div>
             <div className="flex items-center gap-2">
               <h3 className="text-sm font-semibold text-white">
-                {comment.author?.username || "user"}
+                {author?.username || "user"}
               </h3>
               <span className="text-xs text-zinc-500">
                 {comment.createdAt ? new Date(comment.createdAt).toLocaleDateString() : "Just now"}
@@ -78,8 +83,8 @@ const CommentItem = ({ comment, postId, onReply }) => {
             </div>
 
             <p className="text-sm text-zinc-300 mt-1">
-              {comment.reference && (comment.reference.username || comment.reference) && (
-                <span className="text-blue-400 mr-1">@{comment.reference.username || comment.reference}</span>
+              {comment.referencedUser && comment.referencedUser.username && (
+                <span className="text-blue-400 mr-1">@{comment.referencedUser.username}</span>
               )}
               {comment.content}
             </p>
@@ -163,18 +168,19 @@ export default function CommentsModal({ post, closeModal }) {
     try {
       const currentPage = reset ? 1 : page;
       const res = await api.get(`/comment/get-comments/${post._id}/${currentPage}`);
+      // Backend returns { comments: [...] }
+      const newComments = res.data.comments;
       
-      if (res.data && Array.isArray(res.data) && res.data.length > 0) {
-        setComments(prev => reset ? res.data : [...prev, ...res.data]);
+      if (newComments && Array.isArray(newComments) && newComments.length > 0) {
+        setComments(prev => reset ? newComments : [...prev, ...newComments]);
         setPage(currentPage + 1);
-        if (res.data.length < 10) setHasMore(false);
+        if (newComments.length < 25) setHasMore(false);
       } else {
         if (reset) setComments([]);
         setHasMore(false);
       }
     } catch (err) {
       console.error("Error fetching comments", err);
-      // Even if fetch fails (e.g. timeout), stop the loading state
       if (reset) setComments([]);
       setHasMore(false);
     } finally {
@@ -200,21 +206,19 @@ export default function CommentsModal({ post, closeModal }) {
 
       if (replyTo) {
         payload.parent = replyTo.parent || replyTo._id; 
-        payload.reference = replyTo.author._id;
+        payload.reference = (replyTo.authorDetails?._id || replyTo.author?._id || replyTo.author);
       }
 
       const res = await api.post("/comment/create-comment", payload);
       const newComment = res.data.comment;
 
       // Add local author details for immediate display
-      newComment.author = user;
+      newComment.authorDetails = user;
 
       if (!replyTo) {
         setComments(prev => [newComment, ...prev]);
       } else {
-        // Find the parent and add to its local replies if possible, 
-        // or just re-fetch that comment's replies if we had a more complex state.
-        // For simplicity, we'll alert or just add to the parent's local replies if we change state structure.
+        // Find the parent and add to its local replies
         setComments(prev => prev.map(c => {
             if (c._id === (replyTo.parent || replyTo._id)) {
                 return {
@@ -231,13 +235,18 @@ export default function CommentsModal({ post, closeModal }) {
       setReplyTo(null);
     } catch (err) {
       console.error("Error adding comment", err);
-      alert("Failed to post comment. Check if the server is responding.");
+      if (err.response?.data?.message) {
+        alert(err.response.data.message);
+      } else {
+        alert("Failed to post comment.");
+      }
     }
   };
 
   const handleReplyClick = (comment) => {
     setReplyTo(comment);
-    setInput(`@${comment.author.username} `);
+    const authorName = comment.authorDetails?.username || comment.author?.username || "user";
+    setInput(`@${authorName} `);
   };
 
   if (!post) return null;
@@ -294,7 +303,7 @@ export default function CommentsModal({ post, closeModal }) {
         <div className="border-t border-zinc-800 px-4 py-3 bg-black">
           {replyTo && (
             <div className="flex justify-between items-center mb-2 px-2 py-1 bg-zinc-900 rounded text-xs text-zinc-400">
-              <span>Replying to @{replyTo.author.username}</span>
+              <span>Replying to @{replyTo.authorDetails?.username || replyTo.author?.username || "user"}</span>
               <button onClick={() => { setReplyTo(null); setInput(""); }}>
                 <X size={14} />
               </button>
@@ -304,7 +313,7 @@ export default function CommentsModal({ post, closeModal }) {
           <div className="flex items-center gap-3">
             {/* USER */}
             <img
-              src={user?.profilePicture?.commentView || "https://i.pravatar.cc/150?img=60"}
+              src={user?.profilePicture?.commentView || user?.profilePicture?.profileView || "https://i.pravatar.cc/150?img=60"}
               alt=""
               className="w-9 h-9 rounded-full object-cover"
             />
