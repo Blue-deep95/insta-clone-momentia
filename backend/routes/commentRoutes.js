@@ -17,7 +17,7 @@ router.get("/get-comments/:postid/:page",
         try {
             const { postid } = req.params
             const user = req.user
-            
+
             if (!postid) {
                 return res.status(400).json({ message: "Invalid parameters" })
             }
@@ -25,18 +25,18 @@ router.get("/get-comments/:postid/:page",
             // Corrected parameter parsing
             const page = parseInt(req.params.page) || 1
             const limit = 25
-            const skip = (page-1) * limit
+            const skip = (page - 1) * limit
 
             // aggregate 
             const comments = await Comment.aggregate([
-                { 
-                    $match: { 
-                        post: new mongoose.Types.ObjectId(postid), 
+                {
+                    $match: {
+                        post: new mongoose.Types.ObjectId(postid),
                         parent: null // Only top-level comments
-                    } 
+                    }
                 },
                 { $sort: { 'totalLikes': -1, 'createdAt': -1 } }, // Sort by most liked and newest
-                
+
                 { $skip: skip },
                 { $limit: limit },
 
@@ -73,6 +73,7 @@ router.get("/get-comments/:postid/:page",
                     }
                 },
                 // finally we need to add fields that have whether user liked the post or not
+                // totalReplies is already part of the document so it is sent automatically
                 {
                     $addFields: {
                         isLiked: { $gt: [{ $size: '$likedStatus' }, 0] }
@@ -108,7 +109,7 @@ router.get("/get-replies/:postid/:parentid/:page",
         try {
             const { postid, parentid } = req.params
             const user = req.user
-            
+
             if (!postid || !parentid) {
                 return res.status(400).json({ message: "Invalid parameters" })
             }
@@ -117,6 +118,7 @@ router.get("/get-replies/:postid/:parentid/:page",
             const skip = (page - 1) * limit
 
             // aggregation start
+            
             const replies = await Comment.aggregate([
                 // first match the comments with the postid and parentid
                 {
@@ -126,7 +128,7 @@ router.get("/get-replies/:postid/:parentid/:page",
                     }
                 },
                 { $sort: { totalLikes: -1, createdAt: -1 } },
-                
+
                 { $skip: skip },
                 { $limit: limit },
 
@@ -201,10 +203,12 @@ router.get("/get-replies/:postid/:parentid/:page",
                         'referencedUser.savedPosts': 0,
                         'referencedUser.blockedUsers': 0,
                         'referencedUser.otpExpiry': 0,
-                        'referencedUser.profilePicture':0
+                        'referencedUser.profilePicture': 0
                     }
                 }
             ])
+
+
 
             return res.status(200).json({ replies, message: "Replies fetched successfully" })
         }
@@ -234,8 +238,8 @@ router.post("/create-comment",
             };
 
             // here we have to prevent the ability of the user to reply to himself
-            if (reference && reference.toString() == user._id.toString()){
-                return res.status(400).json({message:"You can't reply to yourself!"})
+            if (reference && reference.toString() == user._id.toString()) {
+                return res.status(400).json({ message: "You can't reply to yourself!" })
             }
 
             // Add nesting fields if they exist
