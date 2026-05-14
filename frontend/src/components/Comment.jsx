@@ -21,6 +21,15 @@ const CommentItem = ({ comment, postId, onReply }) => {
 
   // Map backend field authorDetails to a consistent internal format if needed
   const author = comment.authorDetails || comment.author;
+  const referencedUsername = comment.referencedUser?.username;
+  const cleanedContent = (() => {
+    if (!comment.content) return "";
+    const trimmed = comment.content.trim();
+    if (referencedUsername && trimmed.startsWith(`@${referencedUsername}`)) {
+      return trimmed.replace(new RegExp(`^@${referencedUsername}\\s*`), "");
+    }
+    return trimmed;
+  })();
 
   const toggleLike = async () => {
     try {
@@ -83,10 +92,10 @@ const CommentItem = ({ comment, postId, onReply }) => {
             </div>
 
             <p className="text-sm text-zinc-300 mt-1">
-              {comment.referencedUser && comment.referencedUser.username && (
-                <span className="text-blue-400 mr-1">@{comment.referencedUser.username}</span>
+              {referencedUsername && (
+                <span className="text-blue-400 mr-1">@{referencedUsername}</span>
               )}
-              {comment.content}
+              {cleanedContent}
             </p>
 
             <div className="flex items-center gap-4 mt-2 text-xs text-zinc-500 font-semibold">
