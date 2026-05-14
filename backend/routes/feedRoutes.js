@@ -8,6 +8,8 @@ const Follow = require('../models/Follow')
 const Post = require('../models/Post')
 const Like = require('../models/Like')
 
+
+
 // the main route that sends posts to the frontend
 // the page indicates where the user is and we send the next 20 posts to based on the pages
 // much work is required on theese routes in the future when sending information too much information is being sent to 
@@ -126,6 +128,53 @@ router.get("/get-posts/:page",
         catch (err) {
             console.log("error in feedroutes get-posts", err)
             return res.status(500).json({ message: "Internal server error" })
+        }
+    }
+)
+
+// this route is only for getting video posts only just like above like instagram reels
+// the code will be same as above except at the beginning we have to match the correct fields
+router.get("/get-reels/:page",
+    async(req,res) =>{
+        try{
+            const user = req.user
+            const page = parseInt(req.params.page) || 1
+            const skip = (page - 1) * 20
+
+            const reelsToSend = await Post.Aggregate([
+                {$match:{mediaType:'video'} },
+                {$sort:{createdAt:-1} },
+                {$skip:skip},
+                {$limit:limit},
+                // again same as above but we will project the author details here
+                {
+                    $lookup:{
+                        from:'users',
+                        let:{authorId:'$author'},
+                        // start the pipeline to project only the required fields instead of everything
+                        pipline:[
+                            {
+                                $match:{$expr:{$eq:['$_id','$$authorId']}}
+                            },
+                            {
+                                $project:{
+                                    username:1,
+                                    profilePicture:1,
+                                    fullName:1
+                                }
+                            }
+                        ],
+                        as:'authorDetails'
+                    }
+                },
+                // next whether the user liked the post or not work in progress 
+
+            ])
+            
+        }
+        catch(err){
+            console.log('error in get-reels route',err)
+            return res.status(500).json({message:"Internal server Error"})
         }
     }
 )

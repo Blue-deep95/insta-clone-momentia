@@ -2,6 +2,7 @@
 
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
 
 const User = require('../models/User');
 const Post = require('../models/Post');
@@ -14,51 +15,85 @@ const Like = require('../models/Like');
 router.get("/get-comments/:postid/:page",
     async (req, res) => {
         try {
-            const { postid, page } = req.params
+            const { postid } = req.params
             const user = req.user
-            if (!postid || !page) {
+            
+            if (!postid) {
                 return res.status(400).json({ message: "Invalid parameters" })
             }
+
+            // Corrected parameter parsing
+            const page = parseInt(req.params.page) || 1
+            const limit = 25
+            const skip = (page-1) * limit
+
             // aggregate 
-            // need to work on this later
-            // const comments = await Comment.aggregate([
-            //     { $match: { post: { $eq: postid } }, author: { $ne: user._id } },
-            //     // first join the users data to get author details
-            //     {
-            //         $lookup: {
-            //             from: 'users',
-            //             localField: 'author',
-            //             foreignField: '_id',
-            //             as: 'authorDetails'
-            //         }
-            //     },
-            //     { $unwind: '$authorDetails' },
-            //     // lookup the data from Likes to tell if the user liked that comment or not
-            //     // we are storing like status here
-            //     {
-            //         $lookup: {
-            //             from: 'likes',
-            //             pipeline: [{
-            //                 $lookup: {
-            //                     $match: {
-            //                         $expr: {
-            //                             $and: [
-            //                                 { $eq: ['$likeType', 'comment'] },
-            //                                 { $eq: ['$author', new mongoose.Types.ObjectId()] }
-            //                             ]
-            //                         }
-            //                     }
-            //                 }
-            //             }
-            //             ],
-            //             as: 'likedStatus'
-            //         }
-            //     }
+            const comments = await Comment.aggregate([
+                { 
+                    $match: { 
+                        post: new mongoose.Types.ObjectId(postid), 
+                        parent: null // Only top-level comments
+                    } 
+                },
+                { $sort: { 'totalLikes': -1, 'createdAt': -1 } }, // Sort by most liked and newest
+                
+                { $skip: skip },
+                { $limit: limit },
 
+                // first join the users data to get author details
+                {
+                    $lookup: {
+                        from: 'users',
+                        localField: 'author',
+                        foreignField: '_id',
+                        as: 'authorDetails'
+                    }
+                },
+                { $unwind: '$authorDetails' },
 
-            // ])
+                // lookup the data from Likes to tell if the user liked that comment or not
+                {
+                    $lookup: {
+                        from: 'likes',
+                        let: { commentId: '$_id' },
+                        pipeline: [
+                            {
+                                $match: {
+                                    $expr: {
+                                        $and: [
+                                            { $eq: ['$likeType', 'comment'] },
+                                            { $eq: ['$author', new mongoose.Types.ObjectId(user._id)] },
+                                            { $eq: ['$commentTarget', '$$commentId'] }
+                                        ]
+                                    }
+                                }
+                            }
+                        ],
+                        as: 'likedStatus'
+                    }
+                },
+                // finally we need to add fields that have whether user liked the post or not
+                {
+                    $addFields: {
+                        isLiked: { $gt: [{ $size: '$likedStatus' }, 0] }
+                    }
+                },
+                // remove unnecessary user information when sending information
+                {
+                    $project: {
+                        likedStatus: 0,
+                        'authorDetails.password': 0,
+                        'authorDetails.email': 0,
+                        'authorDetails.refreshToken': 0,
+                        'authorDetails.otp': 0,
+                        'authorDetails.savedPosts': 0,
+                        'authorDetails.blockedUsers': 0,
+                        'authorDetails.otpExpiry': 0
+                    }
+                }
+            ])
 
-
+            return res.status(200).json({ comments, message: "Comments fetched successfully" })
         }
         catch (err) {
             console.log("error in get-comments route", err)
@@ -71,7 +106,107 @@ router.get("/get-comments/:postid/:page",
 router.get("/get-replies/:postid/:parentid/:page",
     async (req, res) => {
         try {
+            const { postid, parentid } = req.params
+            const user = req.user
+            
+            if (!postid || !parentid) {
+                return res.status(400).json({ message: "Invalid parameters" })
+            }
+            const page = parseInt(req.params.page) || 1
+            const limit = 25
+            const skip = (page - 1) * limit
 
+            // aggregation start
+            const replies = await Comment.aggregate([
+                // first match the comments with the postid and parentid
+                {
+                    $match: {
+                        post: new mongoose.Types.ObjectId(postid),
+                        parent: new mongoose.Types.ObjectId(parentid)
+                    }
+                },
+                { $sort: { totalLikes: -1, createdAt: -1 } },
+                
+                { $skip: skip },
+                { $limit: limit },
+
+                // the first lookup is for author details
+                {
+                    $lookup: {
+                        from: 'users',
+                        localField: 'author',
+                        foreignField: '_id',
+                        as: 'authorDetails'
+                    }
+                },
+                { $unwind: '$authorDetails' },
+                // now perform a second lookup for referenced users (the user being replied to)
+                {
+                    $lookup: {
+                        from: 'users',
+                        localField: 'reference',
+                        foreignField: '_id',
+                        as: 'referencedUser'
+                    }
+                },
+                // IMPORTANT: Use preserveNullAndEmptyArrays so we don't lose replies that have no reference
+                {
+                    $unwind: {
+                        path: '$referencedUser',
+                        preserveNullAndEmptyArrays: true
+                    }
+                },
+                // Now to check whether the current user liked the reply or not
+                {
+                    $lookup: {
+                        from: 'likes',
+                        let: { commentId: '$_id' },
+                        pipeline: [
+                            {
+                                $match: {
+                                    $expr: {
+                                        $and: [
+                                            { $eq: ['$likeType', 'comment'] },
+                                            { $eq: ['$author', new mongoose.Types.ObjectId(user._id)] },
+                                            { $eq: ['$commentTarget', '$$commentId'] }
+                                        ]
+                                    }
+                                }
+                            }
+                        ],
+                        as: 'likeStatus'
+                    }
+                },
+                // add fields for easy frontend access
+                {
+                    $addFields: {
+                        isLiked: { $gt: [{ $size: '$likeStatus' }, 0] }
+                    }
+                },
+                // remove unnecessary information
+                {
+                    $project: {
+                        likeStatus: 0,
+                        'authorDetails.password': 0,
+                        'authorDetails.email': 0,
+                        'authorDetails.refreshToken': 0,
+                        'authorDetails.otp': 0,
+                        'authorDetails.savedPosts': 0,
+                        'authorDetails.blockedUsers': 0,
+                        'authorDetails.otpExpiry': 0,
+                        'referencedUser.password': 0,
+                        'referencedUser.email': 0,
+                        'referencedUser.refreshToken': 0,
+                        'referencedUser.otp': 0,
+                        'referencedUser.savedPosts': 0,
+                        'referencedUser.blockedUsers': 0,
+                        'referencedUser.otpExpiry': 0,
+                        'referencedUser.profilePicture':0
+                    }
+                }
+            ])
+
+            return res.status(200).json({ replies, message: "Replies fetched successfully" })
         }
         catch (err) {
             console.log('Error in get-replies route', err)
@@ -97,6 +232,11 @@ router.post("/create-comment",
                 post: postid,
                 content: content
             };
+
+            // here we have to prevent the ability of the user to reply to himself
+            if (reference && reference.toString() == user._id.toString()){
+                return res.status(400).json({message:"You can't reply to yourself!"})
+            }
 
             // Add nesting fields if they exist
             if (parent) {
