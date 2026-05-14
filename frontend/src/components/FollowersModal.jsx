@@ -3,7 +3,7 @@ import { X, User } from "lucide-react";
 import api from "../services/api.js";
 import UserListCard from "./UserListCard.jsx";
 
-const FollowersModal = ({ userId, onClose }) => {
+const FollowersModal = ({ userId, onClose, onFollowersUpdate, onFollowersCountUpdate }) => {
   const [followers, setFollowers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -20,6 +20,9 @@ const FollowersModal = ({ userId, onClose }) => {
         const res = await api.get(`/profile/get-followers/${userId}`);
         const followersList = res.data.followers || [];
         setFollowers(followersList);
+        if (onFollowersCountUpdate) {
+          onFollowersCountUpdate(followersList.length);
+        }
       } catch (err) {
         setError(err.response?.data?.message || "Could not load followers.");
       } finally {
@@ -33,19 +36,28 @@ const FollowersModal = ({ userId, onClose }) => {
   const handleRemoveFollower = async (followerId) => {
     setRemovingId(followerId);
     try {
-      // There's no backend endpoint to remove a follower directly
-      // In a real app, you might have an endpoint like /follow/remove-follower/:followerId
-      // For now, we'll just remove from UI
+      const response = await api.delete(`/follow/remove-follower/${followerId}`);
       
-      // Optional: Call backend if endpoint exists
-      // await api.post(`/follow/remove-follower/${followerId}`);
-      
-      setFollowers((prev) =>
-        prev.filter((follower) => follower.userId !== followerId)
-      );
+      // Only remove from UI if backend confirms success
+      if (response.status === 200) {
+        const updatedFollowers = followers.filter((follower) => follower.userId !== followerId);
+        setFollowers(updatedFollowers);
+
+        // Notify parent to update follower count
+        if (onFollowersUpdate) {
+          onFollowersUpdate();
+        }
+        if (onFollowersCountUpdate) {
+          onFollowersCountUpdate(updatedFollowers.length);
+        }
+      }
     } catch (err) {
       console.error("Error removing follower:", err);
-      setError("Failed to remove follower");
+      const errorMsg = err.response?.data?.message || "Failed to remove follower";
+      setError(errorMsg);
+      
+      // Clear error after 3 seconds
+      setTimeout(() => setError(null), 3000);
     } finally {
       setRemovingId(null);
     }
@@ -106,6 +118,7 @@ const FollowersModal = ({ userId, onClose }) => {
                   actionLabel="Remove"
                   onActionClick={handleRemoveFollower}
                   isLoading={removingId === follower.userId}
+                  onUserClick={onClose}
                 />
               ))}
             </div>

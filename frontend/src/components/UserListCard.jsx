@@ -6,7 +6,8 @@ const UserListCard = ({
   user, 
   onActionClick, 
   actionLabel = "Remove", 
-  isLoading = false 
+  isLoading = false,
+  onUserClick
 }) => {
   const navigate = useNavigate();
 
@@ -17,6 +18,9 @@ const UserListCard = ({
     "https://via.placeholder.com/48";
 
   const handleUserClick = () => {
+    if (onUserClick) {
+      onUserClick();
+    }
     navigate(`/profile/${user.userId}`);
   };
 

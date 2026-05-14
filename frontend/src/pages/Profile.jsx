@@ -38,8 +38,8 @@ const Profile = () => {
   const { userId } = useParams();
 
   // Determine which user ID to fetch: the URL param or the current user
-  const profileUserId = userId || user?.id;
-  const isOwnProfile = !userId || userId === user?.id;
+  const profileUserId = userId || user?.id || user?._id;
+  const isOwnProfile = !userId || userId === user?.id || userId === user?._id;
 
   const [profile, setProfile] = useState(null);
   const [posts, setPosts] = useState([]);
@@ -522,6 +522,10 @@ const Profile = () => {
         <FollowersModal
           userId={profileUserId}
           onClose={() => setShowFollowers(false)}
+          onFollowersUpdate={fetchProfile}
+          onFollowersCountUpdate={(count) => {
+            setProfile((prev) => prev ? { ...prev, followers: count } : prev);
+          }}
         />
       )}
 
@@ -531,6 +535,9 @@ const Profile = () => {
           userId={profileUserId}
           onClose={() => setShowFollowing(false)}
           onFollowingUpdate={fetchProfile}
+          onFollowingCountUpdate={(count) => {
+            setProfile((prev) => prev ? { ...prev, following: count } : prev);
+          }}
         />
       )}
 

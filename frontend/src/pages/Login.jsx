@@ -223,9 +223,9 @@ const Login = () => {
           ))}
 
           {/* Floating cards */}
-          <FloatCard avatar="https://picsum.photos/seed/fc1/80/80" title="emma_r just posted" sub="Santorini, Greece" delay="0s" className="top-[17%] left-[8%]" />
-          <FloatCard avatar={null} title="12.4K new moments" sub="shared today" delay="-3s" className="top-[62%] right-[7%]" />
-          <FloatCard avatar="https://picsum.photos/seed/fc3/80/80" title="liam.photo liked" sub="your latest story" delay="-5s" className="bottom-[12%] left-[12%]" />
+          <FloatCard avatar="https://picsum.photos/seed/fc1/80/80" title="@Spark-just posted" sub="Santorini, Greece" delay="0s" className="top-[17%] left-[8%]" />
+          <FloatCard avatar={null} title="@Spark-just posted" sub="shared today" delay="-3s" className="top-[62%] right-[7%]" />
+          <FloatCard avatar="https://picsum.photos/seed/fc3/80/80" title="@Teddy.photo liked" sub="your latest story" delay="-5s" className="bottom-[12%] left-[12%]" />
 
           {/* Brand text — sits above center-left */}
           <div style={{ position: "relative", zIndex: 5, textAlign: "center", padding: "0 52px", marginTop: -20 }}>
@@ -300,7 +300,7 @@ const Login = () => {
               </div>
             )}
 
-            <Field label="Email address" type="email" name="email" placeholder="you@example.com" value={form.email} onChange={handleChange} />
+            <Field label="Email address" type="email" name="email" placeholder="teddy@gmail.com" value={form.email} onChange={handleChange} />
             <Field label="Password" type="password" name="password" placeholder="••••••••••" value={form.password} onChange={handleChange} />
 
             <div style={{ textAlign: "right", marginBottom: 24 }}>

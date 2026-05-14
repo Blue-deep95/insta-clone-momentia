@@ -3,7 +3,7 @@ import { X, User } from "lucide-react";
 import api from "../services/api.js";
 import UserListCard from "./UserListCard.jsx";
 
-const FollowingModal = ({ userId, onClose, onFollowingUpdate }) => {
+const FollowingModal = ({ userId, onClose, onFollowingUpdate, onFollowingCountUpdate }) => {
   const [following, setFollowing] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -20,6 +20,9 @@ const FollowingModal = ({ userId, onClose, onFollowingUpdate }) => {
         const res = await api.get(`/profile/get-following/${userId}`);
         const followingList = res.data.following || [];
         setFollowing(followingList);
+        if (onFollowingCountUpdate) {
+          onFollowingCountUpdate(followingList.length);
+        }
       } catch (err) {
         setError(err.response?.data?.message || "Could not load following.");
       } finally {
@@ -37,13 +40,15 @@ const FollowingModal = ({ userId, onClose, onFollowingUpdate }) => {
       
       // Only remove from UI if backend confirms success
       if (response.status === 200) {
-        setFollowing((prev) =>
-          prev.filter((user) => user.userId !== targetId)
-        );
+        const updatedFollowing = following.filter((user) => user.userId !== targetId);
+        setFollowing(updatedFollowing);
 
         // Notify parent to update following count
         if (onFollowingUpdate) {
           onFollowingUpdate();
+        }
+        if (onFollowingCountUpdate) {
+          onFollowingCountUpdate(updatedFollowing.length);
         }
       }
     } catch (err) {
@@ -113,6 +118,7 @@ const FollowingModal = ({ userId, onClose, onFollowingUpdate }) => {
                   actionLabel="Unfollow"
                   onActionClick={handleUnfollow}
                   isLoading={unfollowingId === user.userId}
+                  onUserClick={onClose}
                 />
               ))}
             </div>
