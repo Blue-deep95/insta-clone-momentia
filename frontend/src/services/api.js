@@ -4,7 +4,8 @@ import axios from 'axios'
 // create axios instance 
 const api = axios.create({
     baseURL:"http://localhost:2000/api", // could be production url using .env files
-    withCredentials:true
+    withCredentials:true,
+    timeout: 5000 // Add a 5-second timeout
 })
 
 api.interceptors.request.use((config)=>{

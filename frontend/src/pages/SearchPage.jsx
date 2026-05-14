@@ -85,9 +85,9 @@ export default function SearchPage() {
   };
 
   return (
-    <div className="w-full h-screen bg-black text-white flex flex-col lg:pl-[72px]">
+    <div className="w-full h-screen bg-black text-white flex flex-col lg:pl-[72px] z-1 ">
       {/* Search Header */}
-      <div className="sticky top-0 z-50 bg-black border-b border-zinc-800">
+      <div className="sticky top-0 z-10 bg-black border-b border-zinc-800">
         <div className="max-w-5xl mx-auto px-4 py-3">
           {/* Search Input */}
           <div className="flex items-center bg-zinc-900 rounded-xl px-3 py-2">
