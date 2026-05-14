@@ -8,6 +8,7 @@ import Profile from "./pages/Profile.jsx"
 import SearchPage from "./pages/SearchPage.jsx"
 import CreatePost from "./pages/CreatePost.jsx"
 
+
 import ProtectedRoutes from './components/ProtectedRoutes.jsx'
 
 export default function App() {

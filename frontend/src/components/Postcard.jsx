@@ -5,12 +5,14 @@ import {Heart,
         Send,
         Bookmark
 } from "lucide-react";
+import CommentsModal from "./Comment";
 
 
 const PostCard = ({ post }) => {
   const [liked, setLiked] = useState(post.isLiked || false);
   const [saved, setSaved] = useState(false);
   const [likesCount, setLikesCount] = useState(post.totalLikes || 0);
+  const [showComments, setShowComments] = useState(false);
 
   const handleToggleLike = async () => {
     try {
@@ -101,7 +103,10 @@ const PostCard = ({ post }) => {
             </button>
 
             {/* COMMENT */}
-            <button className="text-2xl text-gray-700 transition hover:scale-110">
+            <button 
+              onClick={() => setShowComments(true)}
+              className="text-2xl text-gray-700 transition hover:scale-110"
+            >
               <MessageCircleMore size={24}  />
             </button>
 
@@ -142,8 +147,11 @@ const PostCard = ({ post }) => {
         </div>
 
         {/* COMMENTS */}
-        <button className="mt-2 text-sm text-gray-500">
-          View comments
+        <button 
+          onClick={() => setShowComments(true)}
+          className="mt-2 text-sm text-gray-500"
+        >
+          View all {post.totalComments || 0} comments
         </button>
 
         {/* DATE */}
@@ -151,6 +159,14 @@ const PostCard = ({ post }) => {
           {new Date(post.createdAt).toLocaleDateString()}
         </p>
       </div>
+
+      {/* COMMENTS MODAL */}
+      {showComments && (
+        <CommentsModal 
+          post={post} 
+          closeModal={() => setShowComments(false)} 
+        />
+      )}
     </div>
   );
 };
