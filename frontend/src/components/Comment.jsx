@@ -1,11 +1,3 @@
-<<<<<<< HEAD
-import React, { useState, useCallback, useRef } from "react";
-import { X, MessageCircle } from "lucide-react";
-import { Virtuoso } from "react-virtuoso";
-import CommentItem from "./CommentItem";
-import CommentInput from "./CommentInput";
-import { useGetCommentsQuery, useCreateCommentMutation } from "../slices/commentApi";
-=======
 // CommentsModal.jsx
 
 import React, { useState, useEffect } from "react";
@@ -189,16 +181,12 @@ const CommentItem = ({ comment, postId, onReply }) => {
     </div>
   );
 };
->>>>>>> origin/main
 
 export default function CommentsModal({ post, closeModal }) {
   const [page, setPage] = useState(1);
   const [input, setInput] = useState("");
   const [replyTo, setReplyTo] = useState(null);
-<<<<<<< HEAD
-=======
   const [toast, setToast] = useState(null);
->>>>>>> origin/main
   const virtuosoRef = useRef(null);
 
   const { 
@@ -233,14 +221,11 @@ export default function CommentsModal({ post, closeModal }) {
       }
     } catch (err) {
       console.error("Error adding comment", err);
-<<<<<<< HEAD
-=======
       if (err.response?.data?.message) {
         setToast({ message: err.response.data.message, type: "error" });
       } else {
         setToast({ message: "Failed to post comment.", type: "error" });
       }
->>>>>>> origin/main
       alert(err.data?.message || "Failed to post comment.");
     }
   };
@@ -264,8 +249,6 @@ export default function CommentsModal({ post, closeModal }) {
   const comments = commentsData?.comments || [];
 
   return (
-<<<<<<< HEAD
-=======
     <div className="fixed inset-0 bg-black/60 z-50 flex items-end justify-center">
       {/* TOAST */}
       {toast && (
@@ -278,7 +261,6 @@ export default function CommentsModal({ post, closeModal }) {
 
       {/* MODAL */}
       <div className="w-full max-w-md h-[80vh] bg-black rounded-t-3xl flex flex-col animate-slideUp">
->>>>>>> origin/main
     <div 
       className="fixed inset-0 bg-black/80 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 backdrop-blur-sm overflow-hidden"
       onClick={closeModal}
@@ -365,6 +347,8 @@ export default function CommentsModal({ post, closeModal }) {
           />
         </div>
       </div>
+    </div>
+    </div>
     </div>
   );
 }
