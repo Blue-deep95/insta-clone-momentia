@@ -6,617 +6,625 @@ import Sidebar from "../components/Sidebar.jsx";
 import FollowersModal from "../components/FollowersModal.jsx";
 import FollowingModal from "../components/FollowingModal.jsx";
 import FollowButton from "../components/FollowButton.jsx";
-
 import {
-  Camera,
-  Heart,
-  MapPin,
-  Link2,
-  Calendar,
-  BadgeCheck,
-  LayoutGrid,
-  User,
-  Images,
-  Bookmark,
-  ThumbsUp,
-  Plus,
+  Camera, Heart, MapPin, Link2, Calendar, BadgeCheck,
+  LayoutGrid, User, Images, Bookmark, ThumbsUp, Plus,
+  Settings, Share2, MoreHorizontal, Zap,
 } from "lucide-react";
 
-/* ─────────────────────────────────────────────
-   TABS CONFIG
-───────────────────────────────────────────── */
+/* ─── TABS ─────────────────────────────────────────────────── */
 const TABS = [
-  { key: "posts", label: "Posts", Icon: LayoutGrid },
-  { key: "about", label: "About", Icon: User },
-  { key: "photos", label: "Photos", Icon: Images },
-  { key: "saved", label: "Saved", Icon: Bookmark },
-  { key: "liked", label: "Liked", Icon: ThumbsUp },
+  { key: "posts",  label: "Posts",  Icon: LayoutGrid },
+  { key: "about",  label: "About",  Icon: User       },
+  { key: "photos", label: "Photos", Icon: Images     },
+  { key: "saved",  label: "Saved",  Icon: Bookmark   },
+  { key: "liked",  label: "Liked",  Icon: ThumbsUp   },
 ];
 
+/* ─── CSS ───────────────────────────────────────────────────── */
+const css = `
+  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Fraunces:ital,wght@0,300;0,400;0,700;1,300;1,400&display=swap');
+  * { box-sizing: border-box; }
+
+  @keyframes fadeUp   { from { opacity:0; transform:translateY(20px) } to { opacity:1; transform:translateY(0) } }
+  @keyframes fadeIn   { from { opacity:0 } to { opacity:1 } }
+  @keyframes pulse    { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.35;transform:scale(.7)} }
+  @keyframes spin     { to { transform:rotate(360deg) } }
+  @keyframes shimmer  { 0%{background-position:-400px 0} 100%{background-position:400px 0} }
+  @keyframes gridPulse{ 0%,100%{opacity:0.04} 50%{opacity:0.09} }
+  @keyframes rotateSlow { from{transform:rotate(0)} to{transform:rotate(360deg)} }
+  @keyframes rotateSlowR{ from{transform:rotate(0)} to{transform:rotate(-360deg)} }
+  @keyframes floatUp  { 0%{transform:translateY(0)} 100%{transform:translateY(-10px)} }
+  @keyframes orbitDot { 0%{transform:rotate(0deg) translateX(110px)} 100%{transform:rotate(360deg) translateX(110px)} }
+  @keyframes avatarGlow { 0%,100%{box-shadow:0 0 0 0 rgba(110,231,183,0)} 50%{box-shadow:0 0 28px 6px rgba(110,231,183,0.25)} }
+  @keyframes scanLine { 0%{top:-2px} 100%{top:100%} }
+  @keyframes countUp  { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+  .profile-root { font-family:'Plus Jakarta Sans',sans-serif; min-height:100vh; background:#04050F; display:flex; }
+  .profile-body { flex:1; padding:24px; overflow-y:auto; }
+
+  /* cover */
+  .cover-wrap { position:relative; height:200px; border-radius:24px 24px 0 0; overflow:hidden; }
+  @media(min-width:768px){ .cover-wrap{height:260px;} }
+
+  /* grid bg */
+  .grid-bg {
+    position:absolute; inset:0; z-index:0;
+    animation:gridPulse 5s ease-in-out infinite;
+    background-image: linear-gradient(rgba(110,231,183,0.07) 1px,transparent 1px),
+                      linear-gradient(90deg,rgba(110,231,183,0.07) 1px,transparent 1px);
+    background-size:42px 42px;
+  }
+
+  /* card */
+  .profile-card {
+    background:rgba(255,255,255,0.03);
+    border:1px solid rgba(110,231,183,0.1);
+    border-radius:24px;
+    overflow:hidden;
+    backdrop-filter:blur(10px);
+    animation:fadeUp .6s cubic-bezier(.22,1,.36,1) both;
+  }
+
+  /* tab */
+  .tab-btn { transition:all .2s; border-bottom:2px solid transparent; white-space:nowrap; }
+  .tab-btn.active { border-color:#10B981; color:#10B981; }
+  .tab-btn:not(.active) { color:rgba(255,255,255,0.4); }
+  .tab-btn:not(.active):hover { color:rgba(255,255,255,0.75); }
+
+  /* post card */
+  .post-card { position:relative; overflow:hidden; border-radius:16px; background:rgba(255,255,255,0.04); border:1px solid rgba(110,231,183,0.08); cursor:pointer; transition:transform .25s,border-color .25s; }
+  .post-card:hover { transform:translateY(-4px); border-color:rgba(110,231,183,0.3); }
+  .post-card img { width:100%; height:100%; object-fit:cover; display:block; transition:transform .4s; }
+  .post-card:hover img { transform:scale(1.06); }
+  .post-overlay { position:absolute;inset:0;background:linear-gradient(to top,rgba(4,5,15,0.75) 0%,transparent 55%);opacity:0;transition:opacity .25s;display:flex;align-items:flex-end;padding:12px; }
+  .post-card:hover .post-overlay { opacity:1; }
+
+  /* edit input */
+  .edit-input {
+    background:rgba(255,255,255,0.05); border:1.5px solid rgba(110,231,183,0.2);
+    border-radius:12px; padding:12px 16px; color:#fff; font-family:'Plus Jakarta Sans',sans-serif;
+    font-size:14px; outline:none; width:100%; transition:border-color .2s,box-shadow .2s;
+  }
+  .edit-input:focus { border-color:#10B981; box-shadow:0 0 0 4px rgba(16,185,129,0.12); }
+  .edit-input::placeholder { color:rgba(255,255,255,0.3); }
+
+  /* btn */
+  .btn-primary {
+    background:linear-gradient(135deg,#059669 0%,#10B981 55%,#34D399 100%);
+    border:none; border-radius:12px; color:#fff; font-family:'Plus Jakarta Sans',sans-serif;
+    font-weight:600; font-size:13px; padding:10px 20px; cursor:pointer;
+    transition:transform .2s,box-shadow .2s;
+    box-shadow:0 6px 20px -4px rgba(16,185,129,0.4);
+  }
+  .btn-primary:hover { transform:translateY(-1.5px); box-shadow:0 12px 32px -6px rgba(16,185,129,0.55); }
+  .btn-secondary {
+    background:rgba(255,255,255,0.05); border:1.5px solid rgba(255,255,255,0.1);
+    border-radius:12px; color:rgba(255,255,255,0.75); font-family:'Plus Jakarta Sans',sans-serif;
+    font-weight:600; font-size:13px; padding:10px 20px; cursor:pointer; transition:all .2s;
+  }
+  .btn-secondary:hover { background:rgba(255,255,255,0.1); border-color:rgba(255,255,255,0.2); }
+
+  /* stat */
+  .stat-item { text-align:center; cursor:pointer; padding:8px 16px; border-radius:14px; transition:background .2s; }
+  .stat-item:hover { background:rgba(110,231,183,0.07); }
+
+  /* shimmer skeleton */
+  .skeleton { background:linear-gradient(90deg,rgba(255,255,255,0.04) 25%,rgba(255,255,255,0.08) 50%,rgba(255,255,255,0.04) 75%); background-size:400px 100%; animation:shimmer 1.4s infinite; border-radius:8px; }
+
+  /* avatar ring */
+  .avatar-ring { animation:avatarGlow 3s ease-in-out infinite; }
+
+  /* camera icon hover */
+  @keyframes cameraHover { 
+    0% { transform:scale(1); }
+    50% { transform:scale(1.15); }
+    100% { transform:scale(1); }
+  }
+  
+  .camera-icon-btn {
+    position:absolute; bottom:4px; right:4px; width:32px; height:32px;
+    border-radius:50%; background:linear-gradient(135deg, #059669 0%, #10B981 100%);
+    border:2px solid #04050F; display:flex; align-items:center; justify-content:center;
+    cursor:pointer; transition:all .2s ease; box-shadow:0 4px 14px rgba(16,185,129,0.3);
+    z-index:10;
+  }
+  
+  .camera-icon-btn:hover:not(:disabled) {
+    transform:scale(1.1); box-shadow:0 6px 20px rgba(16,185,129,0.5), 0 0 16px rgba(16,185,129,0.3);
+  }
+  
+  .camera-icon-btn:active:not(:disabled) {
+    transform:scale(0.95);
+  }
+  
+  .camera-icon-btn:disabled {
+    cursor:not-allowed; opacity:0.8;
+  }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width:4px; height:4px; }
+  ::-webkit-scrollbar-track { background:transparent; }
+  ::-webkit-scrollbar-thumb { background:rgba(110,231,183,0.2); border-radius:4px; }
+
+  /* responsive */
+  @media(max-width:768px) {
+    .profile-body { padding:12px; }
+    .cover-wrap { height:150px; }
+    .hide-mobile { display:none !important; }
+  }
+`;
+
+/* ─── MAIN ───────────────────────────────────────────────────── */
 const Profile = () => {
-  const { user } = useSelector((state) => state.auth);
+  const { user } = useSelector((s) => s.auth);
   const { userId } = useParams();
 
-  // Determine which user ID to fetch: the URL param or the current user
-  const profileUserId = userId || user?.id || user?._id;
-  const isOwnProfile = !userId || userId === user?.id || userId === user?._id;
+  const profileUserId = userId || user?.id;
+  const isOwnProfile  = !userId || userId === user?.id;
 
-  const [profile, setProfile] = useState(null);
-  const [posts, setPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [isFollowing, setIsFollowing] = useState(false);
+  const [profile,      setProfile]      = useState(null);
+  const [posts,        setPosts]        = useState([]);
+  const [loading,      setLoading]      = useState(true);
+  const [isFollowing,  setIsFollowing]  = useState(false);
+  const [editMode,     setEditMode]     = useState(false);
+  const [activeTab,    setActiveTab]    = useState("posts");
+  const [avatarFile,   setAvatarFile]   = useState(null);
+  const [avatarPrev,   setAvatarPrev]   = useState(null);
+  const [saving,       setSaving]       = useState(false);
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const [showFollowers,setShowFollowers]= useState(false);
+  const [showFollowing,setShowFollowing]= useState(false);
+  const [form, setForm] = useState({ name:"", bio:"", gender:"" });
 
-  const [editMode, setEditMode] = useState(false);
-  const [activeTab, setActiveTab] = useState("posts");
-
-  const [avatarFile, setAvatarFile] = useState(null);
-  const [avatarPrev, setAvatarPrev] = useState(null);
-
-  const [saving, setSaving] = useState(false);
-
-  const [showFollowers, setShowFollowers] = useState(false);
-  const [showFollowing, setShowFollowing] = useState(false);
-
-  const [form, setForm] = useState({
-    name: "",
-    bio: "",
-    gender: "",
-  });
-
-  /* FETCH PROFILE */
   const fetchProfile = async () => {
     try {
-      const res = await api.get(`/profile/get-profile/${profileUserId}`);
-
+      const res  = await api.get(`/profile/get-profile/${profileUserId}`);
       const data = res.data.profile;
-
       setProfile(data);
-      
-      // Check if current user is following this profile (for other users' profiles)
-      if (res.data.following !== undefined) {
-        setIsFollowing(res.data.following);
-      }
-
-      setForm({
-        name: data.name || "",
-        bio: data.bio || "",
-        gender: data.gender || "",
-      });
-    } catch (err) {
-      console.error(err);
-    }
+      if (res.data.following !== undefined) setIsFollowing(res.data.following);
+      setForm({ name: data.name||"", bio: data.bio||"", gender: data.gender||"" });
+    } catch (err) { console.error(err); }
   };
 
-  /* FETCH POSTS */
   const fetchProfilePosts = async () => {
     try {
       const res = await api.get(`/profile/get-userposts/${profileUserId}`);
-
       setPosts(res.data.posts || []);
-    } catch (err) {
-      console.error("Failed to load profile posts:", err);
-    }
+    } catch (err) { console.error(err); }
   };
 
-  /* LOAD */
   useEffect(() => {
     if (!profileUserId) return;
-
-    const loadProfile = async () => {
+    (async () => {
       setLoading(true);
-
-      await Promise.all([
-        fetchProfile(),
-        fetchProfilePosts(),
-      ]);
-
+      await Promise.all([fetchProfile(), fetchProfilePosts()]);
       setLoading(false);
-    };
-
-    loadProfile();
+    })();
   }, [profileUserId]);
 
-  /* INPUT CHANGE */
-  const handleChange = (e) => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value,
-    });
-  };
+  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
-  /* AVATAR */
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
-
     if (!file) return;
-
+    
+    // Instant preview
     setAvatarFile(file);
     setAvatarPrev(URL.createObjectURL(file));
-  };
-
-  /* SAVE */
-  const handleSave = async () => {
-    setSaving(true);
-
-    try {
-      await api.post("/profile/edit-profile", form);
-
-      if (avatarFile) {
-        const fd = new FormData();
-
-        fd.append("avatar", avatarFile);
-
-        await api.post("/profile/upload-avatar", fd);
-      }
-
-      setEditMode(false);
-
-      setAvatarFile(null);
-      setAvatarPrev(null);
-
-      fetchProfile();
-    } finally {
-      setSaving(false);
+    
+    // Auto-upload if not in edit mode (for seamless UX)
+    if (!editMode) {
+      const uploadAvatar = async () => {
+        setAvatarUploading(true);
+        try {
+          const fd = new FormData();
+          fd.append("avatar", file);
+          await api.post("/profile/upload-avatar", fd);
+          setAvatarFile(null);
+          await fetchProfile();
+        } catch (err) {
+          console.error("Avatar upload failed:", err);
+          setAvatarUploading(false);
+        }
+      };
+      uploadAvatar();
     }
   };
 
-  /* CANCEL */
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await api.post("/profile/edit-profile", form);
+      if (avatarFile) {
+        const fd = new FormData();
+        fd.append("avatar", avatarFile);
+        await api.post("/profile/upload-avatar", fd);
+      }
+      setEditMode(false); setAvatarFile(null); setAvatarPrev(null);
+      fetchProfile();
+    } finally { setSaving(false); }
+  };
+
   const handleCancel = () => {
-    setEditMode(false);
-
-    setAvatarFile(null);
-    setAvatarPrev(null);
-
-    setForm({
-      name: profile?.name || "",
-      bio: profile?.bio || "",
-      gender: profile?.gender || "",
-    });
+    setEditMode(false); setAvatarFile(null); setAvatarPrev(null);
+    setForm({ name: profile?.name||"", bio: profile?.bio||"", gender: profile?.gender||"" });
   };
 
   /* LOADING */
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-white">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-blue-100 border-t-blue-600" />
-
-          <p className="text-sm font-medium text-gray-400">
-            Loading profile…
-          </p>
+  if (loading) return (
+    <>
+      <style>{css}</style>
+      <div className="profile-root" style={{ alignItems:"center", justifyContent:"center" }}>
+        <div style={{ textAlign:"center" }}>
+          <div style={{ width:48, height:48, border:"2px solid rgba(110,231,183,0.2)", borderTop:"2px solid #10B981", borderRadius:"50%", animation:"spin .8s linear infinite", margin:"0 auto 16px" }} />
+          <p style={{ color:"rgba(255,255,255,0.4)", fontSize:13, fontFamily:"'Plus Jakarta Sans',sans-serif" }}>Loading profile…</p>
         </div>
       </div>
-    );
-  }
+    </>
+  );
 
-  const avatarSrc =
-    avatarPrev ||
-    profile?.profilePicture?.profileView ||
-    null;
+  const avatarSrc = avatarPrev || profile?.profilePicture?.profileView || null;
 
   return (
-    <div className="flex min-h-screen bg-white lg:pl-20">
+    <>
+      <style>{css}</style>
+      <div className="profile-root">
 
-      {/* SIDEBAR */}
-      <div className="hidden lg:block">
-        <Sidebar />
-      </div>
+        {/* SIDEBAR */}
+        <div className="hide-mobile">
+          <Sidebar />
+        </div>
 
-      {/* BODY */}
-      <div className="flex-1 p-3 md:p-5 lg:p-6">
+        {/* BODY */}
+        <div className="profile-body" style={{ paddingLeft: 24 }}>
+          <div style={{ maxWidth: 1000, margin: "0 auto" }}>
 
-        <div className="mx-auto max-w-5xl overflow-hidden rounded-3xl bg-white shadow-xl shadow-gray-200/60">
+            {/* ── PROFILE CARD ── */}
+            <div className="profile-card">
 
-          <div className="px-4 pb-8 sm:px-6 md:px-8 lg:px-10">
+              {/* COVER / HERO */}
+              <div className="cover-wrap">
+                {/* Grid bg */}
+                <div className="grid-bg" />
 
-            {/* PROFILE HEADER */}
-            <div className="flex flex-col items-center gap-5 md:flex-row md:items-end md:justify-between">
+                {/* Scan line */}
+                <div style={{ position:"absolute", left:0, right:0, height:"1px", zIndex:2,
+                  background:"linear-gradient(90deg,transparent 0%,rgba(110,231,183,0.5) 50%,transparent 100%)",
+                  animation:"scanLine 10s linear infinite" }} />
 
-              {/* LEFT */}
-              <div className="flex flex-col items-center gap-4 md:flex-row md:items-end">
+                {/* Decorative rings */}
+                <div style={{ position:"absolute", top:"50%", left:"50%", width:340, height:340,
+                  marginLeft:-170, marginTop:-170, borderRadius:"50%",
+                  border:"1px solid rgba(110,231,183,0.06)", animation:"rotateSlow 50s linear infinite" }} />
+                <div style={{ position:"absolute", top:"50%", left:"50%", width:220, height:220,
+                  marginLeft:-110, marginTop:-110, borderRadius:"50%",
+                  border:"1px dashed rgba(99,102,241,0.12)", animation:"rotateSlowR 28s linear infinite" }} />
 
-                {/* AVATAR */}
-                <div className="relative flex-shrink-0">
-
-                  <div className="rounded-full border-[5px] border-white shadow-2xl">
-
-                    {avatarSrc ? (
-                      <img
-                        src={avatarSrc}
-                        alt="profile"
-                        className="h-24 w-24 rounded-full object-cover sm:h-28 sm:w-28 md:h-32 md:w-32 lg:h-36 lg:w-36"
-                      />
-                    ) : (
-                      <div className="flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-blue-100 to-blue-200 sm:h-28 sm:w-28 md:h-32 md:w-32 lg:h-36 lg:w-36">
-
-                        <span className="text-3xl font-bold text-blue-500 md:text-4xl">
-                          {profile?.name?.[0] || "U"}
-                        </span>
-
-                      </div>
-                    )}
-
-                  </div>
-
-                  {editMode && (
-                    <label className="absolute bottom-1 right-1 cursor-pointer rounded-full bg-white p-2 shadow-lg ring-2 ring-gray-100 transition hover:bg-gray-50">
-
-                      <Camera
-                        size={15}
-                        className="text-gray-600"
-                      />
-
-                      <input
-                        type="file"
-                        hidden
-                        accept="image/*"
-                        onChange={handleAvatarChange}
-                      />
-
-                    </label>
-                  )}
-
+                {/* Orbit dot */}
+                <div style={{ position:"absolute", top:"50%", left:"50%", width:0, height:0, zIndex:3 }}>
+                  <div style={{ width:6, height:6, borderRadius:"50%", background:"#6EE7B7",
+                    boxShadow:"0 0 10px 3px rgba(110,231,183,0.7)",
+                    animation:"orbitDot 8s linear infinite" }} />
                 </div>
 
-                {/* INFO */}
-                <div className="mb-1 text-center md:text-left">
+                {/* Diagonal lines */}
+                <svg style={{ position:"absolute", inset:0, width:"100%", height:"100%", zIndex:0 }} preserveAspectRatio="none">
+                  <line x1="0" y1="30%" x2="100%" y2="72%" stroke="rgba(110,231,183,0.05)" strokeWidth="1" />
+                  <line x1="0" y1="70%" x2="100%" y2="20%" stroke="rgba(99,102,241,0.04)" strokeWidth="0.8" />
+                  <line x1="20%" y1="0" x2="80%" y2="100%" stroke="rgba(110,231,183,0.03)" strokeWidth="0.6" />
+                </svg>
 
-                  {/* NAME */}
-                  {editMode ? (
-                    <input
-                      name="name"
-                      value={form.name}
-                      onChange={handleChange}
-                      placeholder="Your name"
-                      className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2 text-xl font-bold text-gray-900 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 md:text-2xl"
-                    />
-                  ) : (
-                    <div className="flex items-center justify-center gap-2 md:justify-start">
-
-                      <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
-                        {profile?.name}
-                      </h1>
-
-                      <BadgeCheck
-                        size={22}
-                        className="text-blue-500"
-                      />
-
-                    </div>
-                  )}
-
-                  {/* USERNAME */}
-                  <p className="mt-0.5 text-sm text-gray-500">
-                    @{profile?.username || "momentia_user"}
-                  </p>
-
-                  {/* BIO */}
-                  <div className="mt-2 max-w-lg">
-
-                    {editMode ? (
-                      <>
-                        <textarea
-                          name="bio"
-                          value={form.bio}
-                          onChange={handleChange}
-                          rows={2}
-                          placeholder="Write your bio…"
-                          className="w-full resize-none rounded-xl border border-gray-200 bg-gray-50 p-3 text-sm text-gray-700 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-                        />
-
-                        <select
-                          name="gender"
-                          value={form.gender}
-                          onChange={handleChange}
-                          className="mt-2 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-                        >
-                          <option value="">Select gender</option>
-                          <option value="male">Male</option>
-                          <option value="female">Female</option>
-                          <option value="nonbinary">Non-binary</option>
-                        </select>
-                      </>
-                    ) : (
-                      <p className="text-sm leading-relaxed text-gray-700">
-                        {profile?.bio || "Traveler | Dreamer"}
-                      </p>
-                    )}
-
-                  </div>
-
-                  {/* META */}
-                  {!editMode && (
-                    <div className="mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-sm text-gray-500 md:justify-start">
-
-                      {profile?.location && (
-                        <span className="flex items-center gap-1">
-                          <MapPin size={13} />
-                          {profile.location}
-                        </span>
-                      )}
-
-                      {profile?.website && (
-                        <a
-                          href={profile.website}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="flex items-center gap-1 text-blue-500 hover:underline"
-                        >
-                          <Link2 size={13} />
-                          {profile.website}
-                        </a>
-                      )}
-
-                      {profile?.joinedAt && (
-                        <span className="flex items-center gap-1">
-                          <Calendar size={13} />
-
-                          Joined{" "}
-
-                          {new Date(
-                            profile.joinedAt
-                          ).toLocaleDateString("en-US", {
-                            month: "long",
-                            year: "numeric",
-                          })}
-                        </span>
-                      )}
-
-                    </div>
-                  )}
-
-                  {/* STATS */}
-                  <div className="mt-4 flex justify-center gap-6 md:justify-start md:gap-8">
-
-                    <StatBadge
-                      value={profile?.totalPosts || 0}
-                      label="Posts"
-                    />
-
-                    {/* FOLLOWERS */}
-                    <button
-                      type="button"
-                      onClick={() => setShowFollowers(true)}
-                      className="cursor-pointer text-center md:text-left"
-                    >
-                      <p className="text-xl font-bold text-gray-900">
-                        {Number(
-                          profile?.followers || 0
-                        ).toLocaleString()}
-                      </p>
-
-                      <p className="text-xs text-gray-500 hover:text-blue-500">
-                        Followers
-                      </p>
-                    </button>
-
-                    {/* FOLLOWING */}
-                    <button
-                      type="button"
-                      onClick={() => setShowFollowing(true)}
-                      className="cursor-pointer text-center md:text-left"
-                    >
-                      <p className="text-xl font-bold text-gray-900">
-                        {Number(
-                          profile?.following || 0
-                        ).toLocaleString()}
-                      </p>
-
-                      <p className="text-xs text-gray-500 hover:text-blue-500">
-                        Following
-                      </p>
-                    </button>
-
-                  </div>
-
-                </div>
-              </div>
-
-              {/* BUTTONS */}
-              <div className="flex flex-shrink-0 items-center gap-3">
-
-                {isOwnProfile ? (
-                  editMode ? (
-                    <>
-                      <button
-                        onClick={handleCancel}
-                        className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-50"
-                      >
-                        Cancel
-                      </button>
-
-                      <button
-                        onClick={handleSave}
-                        disabled={saving}
-                        className="rounded-xl bg-blue-600 px-5 py-2 text-sm font-semibold text-white"
-                      >
-                        {saving ? "Saving…" : "Save"}
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <button
-                        onClick={() => setEditMode(true)}
-                        className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700"
-                      >
-                        Edit Profile
-                      </button>
-
-                      <button className="flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white">
-
-                        <Plus size={15} />
-
-                        <span className="hidden sm:inline">
-                          Create Post
-                        </span>
-
-                      </button>
-                    </>
-                  )
-                ) : (
-                  // Show Follow/Unfollow button for other users' profiles
-                  <FollowButton 
-                    userId={profileUserId}
-                    isFollowing={isFollowing}
-                    onFollowStatusChange={(status) => {
-                      // Refresh profile to update follower count
-                      fetchProfile();
-                    }}
-                  />
-                )}
-
-              </div>
-            </div>
-
-            {/* TABS */}
-            <div className="mt-8 border-b border-gray-100">
-
-              <div className="scrollbar-hide flex gap-1 overflow-x-auto">
-
-                {TABS.map(({ key, label, Icon }) => (
-                  <button
-                    key={key}
-                    onClick={() => setActiveTab(key)}
-                    className={`flex items-center gap-1.5 whitespace-nowrap border-b-2 px-4 pb-3 pt-1 text-sm font-semibold transition
-                    ${
-                      activeTab === key
-                        ? "border-blue-600 text-blue-600"
-                        : "border-transparent text-gray-500 hover:text-gray-800"
-                    }`}
-                  >
-                    <Icon size={14} />
-                    {label}
-                  </button>
+                {/* Corner brackets */}
+                {[
+                  { top:14, left:14,   borderTop:"1.5px solid rgba(110,231,183,0.4)", borderLeft:"1.5px solid rgba(110,231,183,0.4)"   },
+                  { top:14, right:14,  borderTop:"1.5px solid rgba(110,231,183,0.4)", borderRight:"1.5px solid rgba(110,231,183,0.4)"  },
+                  { bottom:14, left:14, borderBottom:"1.5px solid rgba(110,231,183,0.4)", borderLeft:"1.5px solid rgba(110,231,183,0.4)" },
+                  { bottom:14, right:14,borderBottom:"1.5px solid rgba(110,231,183,0.4)", borderRight:"1.5px solid rgba(110,231,183,0.4)"},
+                ].map((s, i) => (
+                  <div key={i} style={{ position:"absolute", width:22, height:22, zIndex:2, ...s }} />
                 ))}
 
+                {/* Live badge */}
+                <div style={{ position:"absolute", top:18, left:"50%", transform:"translateX(-50%)",
+                  display:"inline-flex", alignItems:"center", gap:6, padding:"4px 12px", borderRadius:20,
+                  background:"rgba(110,231,183,0.06)", border:"1px solid rgba(110,231,183,0.15)", zIndex:3 }}>
+                  <span style={{ width:5, height:5, borderRadius:"50%", background:"#6EE7B7",
+                    display:"inline-block", animation:"pulse 2s ease infinite" }} />
+                  <span style={{ fontSize:9.5, color:"#6EE7B7", letterSpacing:"1.5px", textTransform:"uppercase",
+                    fontWeight:500, fontFamily:"'Plus Jakarta Sans',sans-serif" }}>Momentia</span>
+                </div>
+
+                {/* Cover gradient overlay at bottom */}
+                <div style={{ position:"absolute", inset:0, background:"linear-gradient(to bottom, transparent 40%, rgba(4,5,15,0.95) 100%)", zIndex:1 }} />
               </div>
-            </div>
 
-            {/* POSTS */}
-            <div className="mt-6">
+              {/* ── AVATAR + INFO ROW ── */}
+              <div style={{ padding:"0 28px 28px", position:"relative" }}>
 
-              {activeTab === "posts" ? (
-                posts.length > 0 ? (
-                  <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
+                {/* Avatar — overlaps cover */}
+                <div style={{ display:"flex", alignItems:"flex-end", justifyContent:"space-between",
+                  marginTop:-52, position:"relative", zIndex:4, flexWrap:"wrap", gap:16 }}>
 
-                    {posts.map((post, i) => (
-                      <PostCard key={i} post={post} />
-                    ))}
+                  {/* LEFT: avatar + name */}
+                  <div style={{ display:"flex", alignItems:"flex-end", gap:20, flexWrap:"wrap" }}>
 
+                    {/* AVATAR */}
+                    <div style={{ position:"relative", flexShrink:0 }}>
+                      <div className="avatar-ring" style={{ width:108, height:108, borderRadius:"50%",
+                        border:"3px solid rgba(110,231,183,0.5)", padding:3, background:"#04050F" }}>
+                        {avatarSrc ? (
+                          <img src={avatarSrc} alt="avatar"
+                            style={{ width:"100%", height:"100%", borderRadius:"50%", objectFit:"cover", display:"block", opacity: avatarUploading ? 0.6 : 1, transition: "opacity .2s" }} />
+                        ) : (
+                          <div style={{ width:"100%", height:"100%", borderRadius:"50%",
+                            background:"linear-gradient(135deg, rgba(110,231,183,0.15) 0%, rgba(99,102,241,0.1) 100%)",
+                            display:"flex", alignItems:"center", justifyContent:"center", opacity: avatarUploading ? 0.6 : 1, transition: "opacity .2s" }}>
+                            <span style={{ fontFamily:"'Fraunces',serif", fontSize:36, fontWeight:700, color:"#6EE7B7" }}>
+                              {profile?.name?.[0] || "U"}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Camera icon - show always if own profile */}
+                      {isOwnProfile && (
+                        <label className="camera-icon-btn" title={avatarSrc ? "Change profile picture" : "Add profile picture"} style={{ opacity: avatarUploading ? 0.7 : 1 }}>
+                          {avatarUploading ? (
+                            <span style={{ width:16, height:16, border:"2px solid rgba(255,255,255,0.3)", borderTop:"2px solid #fff", borderRadius:"50%", animation:"spin .7s linear infinite", display:"inline-block" }} />
+                          ) : (
+                            <Camera size={16} color="#fff" />
+                          )}
+                          <input 
+                            type="file" 
+                            hidden 
+                            accept="image/*" 
+                            onChange={handleAvatarChange}
+                            disabled={avatarUploading}
+                          />
+                        </label>
+                      )}
+                    </div>
+
+                    {/* NAME + USERNAME + BIO */}
+                    <div style={{ paddingBottom:6 }}>
+                      {editMode ? (
+                        <input className="edit-input" name="name" value={form.name} onChange={handleChange}
+                          placeholder="Your name" style={{ fontSize:20, fontWeight:700, marginBottom:8 }} />
+                      ) : (
+                        <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4 }}>
+                          <h1 style={{ fontFamily:"'Fraunces',serif", fontSize:26, fontWeight:700, color:"#fff",
+                            letterSpacing:"-0.5px", margin:0 }}>
+                            {profile?.name}
+                          </h1>
+                          <BadgeCheck size={20} color="#10B981" />
+                        </div>
+                      )}
+
+                      <p style={{ fontSize:12, color:"rgba(255,255,255,0.35)", fontFamily:"'Plus Jakarta Sans',sans-serif", margin:"0 0 8px" }}>
+                        @{profile?.username || "momentia_user"}
+                      </p>
+
+                      {!editMode && (
+                        <p style={{ fontSize:13, color:"rgba(255,255,255,0.6)", fontFamily:"'Plus Jakarta Sans',sans-serif",
+                          maxWidth:380, lineHeight:1.6, margin:0 }}>
+                          {profile?.bio || "Traveler · Dreamer · Moment collector ✨"}
+                        </p>
+                      )}
+                    </div>
                   </div>
+
+                  {/* RIGHT: action buttons */}
+                  <div style={{ display:"flex", alignItems:"center", gap:10, paddingBottom:6 }}>
+                    {isOwnProfile ? (
+                      editMode ? (
+                        <>
+                          <button className="btn-secondary" onClick={handleCancel}>Cancel</button>
+                          <button className="btn-primary" onClick={handleSave} disabled={saving}>
+                            {saving ? (
+                              <span style={{ display:"flex", alignItems:"center", gap:8 }}>
+                                <span style={{ width:12, height:12, border:"2px solid rgba(255,255,255,0.3)", borderTop:"2px solid #fff", borderRadius:"50%", animation:"spin .7s linear infinite", display:"inline-block" }} />
+                                Saving…
+                              </span>
+                            ) : "Save Changes"}
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button className="btn-secondary" onClick={() => setEditMode(true)}
+                            style={{ display:"flex", alignItems:"center", gap:6 }}>
+                            <Settings size={13} />
+                            Edit Profile
+                          </button>
+                          <button className="btn-primary" style={{ display:"flex", alignItems:"center", gap:6 }}>
+                            <Plus size={14} />
+                            <span>Create Post</span>
+                          </button>
+                        </>
+                      )
+                    ) : (
+                      <FollowButton userId={profileUserId} isFollowing={isFollowing}
+                        onFollowStatusChange={() => fetchProfile()} />
+                    )}
+
+                    <button style={{ width:38, height:38, borderRadius:10,
+                      background:"rgba(255,255,255,0.05)", border:"1.5px solid rgba(255,255,255,0.1)",
+                      display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer" }}>
+                      <MoreHorizontal size={16} color="rgba(255,255,255,0.6)" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* ── EDIT FIELDS ── */}
+                {editMode && (
+                  <div style={{ marginTop:20, display:"grid", gap:12, gridTemplateColumns:"1fr 1fr",
+                    animation:"fadeUp .3s cubic-bezier(.22,1,.36,1) both" }}>
+                    <div style={{ gridColumn:"1/-1" }}>
+                      <label style={{ fontSize:10, fontWeight:600, color:"rgba(255,255,255,0.35)", letterSpacing:"0.9px",
+                        textTransform:"uppercase", display:"block", marginBottom:6, fontFamily:"'Plus Jakarta Sans',sans-serif" }}>Bio</label>
+                      <textarea className="edit-input" name="bio" value={form.bio} onChange={handleChange}
+                        rows={3} placeholder="Write your bio…" style={{ resize:"none" }} />
+                    </div>
+                    <div>
+                      <label style={{ fontSize:10, fontWeight:600, color:"rgba(255,255,255,0.35)", letterSpacing:"0.9px",
+                        textTransform:"uppercase", display:"block", marginBottom:6, fontFamily:"'Plus Jakarta Sans',sans-serif" }}>Gender</label>
+                      <select className="edit-input" name="gender" value={form.gender} onChange={handleChange}>
+                        <option value="">Select gender</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="nonbinary">Non-binary</option>
+                      </select>
+                    </div>
+                  </div>
+                )}
+
+                {/* ── META ROW ── */}
+                {!editMode && (
+                  <div style={{ marginTop:16, display:"flex", flexWrap:"wrap", gap:16,
+                    alignItems:"center", borderTop:"1px solid rgba(255,255,255,0.06)", paddingTop:16 }}>
+
+                    {profile?.location && (
+                      <span style={{ display:"flex", alignItems:"center", gap:5, fontSize:12,
+                        color:"rgba(255,255,255,0.4)", fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
+                        <MapPin size={12} color="#10B981" /> {profile.location}
+                      </span>
+                    )}
+                    {profile?.website && (
+                      <a href={profile.website} target="_blank" rel="noreferrer"
+                        style={{ display:"flex", alignItems:"center", gap:5, fontSize:12, color:"#10B981",
+                          fontFamily:"'Plus Jakarta Sans',sans-serif", textDecoration:"none" }}>
+                        <Link2 size={12} /> {profile.website}
+                      </a>
+                    )}
+                    {profile?.joinedAt && (
+                      <span style={{ display:"flex", alignItems:"center", gap:5, fontSize:12,
+                        color:"rgba(255,255,255,0.4)", fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
+                        <Calendar size={12} color="#10B981" />
+                        Joined {new Date(profile.joinedAt).toLocaleDateString("en-US",{month:"long",year:"numeric"})}
+                      </span>
+                    )}
+
+                    {/* Spacer */}
+                    <div style={{ flex:1 }} />
+
+                    {/* Share */}
+                    <button style={{ display:"flex", alignItems:"center", gap:5, fontSize:12, color:"rgba(255,255,255,0.4)",
+                      background:"none", border:"none", cursor:"pointer", fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
+                      <Share2 size={13} /> Share profile
+                    </button>
+                  </div>
+                )}
+
+                {/* ── STATS ROW ── */}
+                <div style={{ marginTop:20, display:"flex", gap:4, background:"rgba(255,255,255,0.02)",
+                  border:"1px solid rgba(110,231,183,0.08)", borderRadius:16, padding:"4px 8px",
+                  width:"fit-content", animation:"countUp .5s .2s both" }}>
+
+                  <StatItem value={profile?.totalPosts || 0} label="Posts" onClick={null} />
+                  <div style={{ width:1, background:"rgba(255,255,255,0.07)", margin:"8px 0" }} />
+                  <StatItem value={profile?.followers || 0} label="Followers" onClick={() => setShowFollowers(true)} />
+                  <div style={{ width:1, background:"rgba(255,255,255,0.07)", margin:"8px 0" }} />
+                  <StatItem value={profile?.following || 0} label="Following" onClick={() => setShowFollowing(true)} />
+                </div>
+              </div>
+
+              {/* ── TABS ── */}
+              <div style={{ borderTop:"1px solid rgba(255,255,255,0.06)", padding:"0 28px" }}>
+                <div style={{ display:"flex", gap:0, overflowX:"auto" }}>
+                  {TABS.map(({ key, label, Icon }) => (
+                    <button key={key} className={`tab-btn ${activeTab === key ? "active" : ""}`}
+                      onClick={() => setActiveTab(key)}
+                      style={{ display:"flex", alignItems:"center", gap:6, padding:"14px 18px",
+                        fontSize:12, fontWeight:600, fontFamily:"'Plus Jakarta Sans',sans-serif",
+                        background:"none", border:"none", borderBottom:"2px solid transparent", cursor:"pointer" }}>
+                      <Icon size={13} />
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* ── CONTENT ── */}
+              <div style={{ padding:"24px 28px 28px" }}>
+                {activeTab === "posts" ? (
+                  posts.length > 0 ? (
+                    <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(170px,1fr))", gap:12 }}>
+                      {posts.map((post, i) => (
+                        <PostCard key={i} post={post} style={{ animationDelay: `${i * 0.05}s` }} />
+                      ))}
+                    </div>
+                  ) : <EmptyState />
                 ) : (
-                  <EmptyState />
-                )
-              ) : (
-                <EmptyState label={`No ${activeTab} yet`} />
-              )}
+                  <EmptyState label={`No ${activeTab} yet`} />
+                )}
+              </div>
 
             </div>
-
           </div>
         </div>
       </div>
 
-      {/* FOLLOWERS MODAL */}
       {showFollowers && (
-        <FollowersModal
-          userId={profileUserId}
-          onClose={() => setShowFollowers(false)}
-          onFollowersUpdate={fetchProfile}
-          onFollowersCountUpdate={(count) => {
-            setProfile((prev) => prev ? { ...prev, followers: count } : prev);
-          }}
-        />
+        <FollowersModal userId={profileUserId} onClose={() => setShowFollowers(false)} onFollowersUpdate={fetchProfile} />
       )}
-
-      {/* FOLLOWING MODAL */}
       {showFollowing && (
-        <FollowingModal
-          userId={profileUserId}
-          onClose={() => setShowFollowing(false)}
-          onFollowingUpdate={fetchProfile}
-          onFollowingCountUpdate={(count) => {
-            setProfile((prev) => prev ? { ...prev, following: count } : prev);
-          }}
-        />
+        <FollowingModal userId={profileUserId} onClose={() => setShowFollowing(false)} onFollowingUpdate={fetchProfile} />
       )}
-
-    </div>
+    </>
   );
 };
 
-/* STAT */
-const StatBadge = ({ value, label }) => (
-  <div className="text-center md:text-left">
-    <p className="text-xl font-bold text-gray-900">
+/* ─── STAT ITEM ─────────────────────────────────────────────── */
+const StatItem = ({ value, label, onClick }) => (
+  <div className="stat-item" onClick={onClick}
+    style={{ cursor: onClick ? "pointer" : "default" }}>
+    <p style={{ fontFamily:"'Fraunces',serif", fontSize:20, fontWeight:700, color:"#fff", margin:0, lineHeight:1.1 }}>
       {Number(value).toLocaleString()}
     </p>
-
-    <p className="text-xs text-gray-500">
+    <p style={{ fontSize:10, color: onClick ? "rgba(110,231,183,0.7)" : "rgba(255,255,255,0.35)",
+      fontFamily:"'Plus Jakarta Sans',sans-serif", margin:"2px 0 0", letterSpacing:"0.5px", textTransform:"uppercase" }}>
       {label}
     </p>
   </div>
 );
 
-/* POST CARD */
+/* ─── POST CARD ─────────────────────────────────────────────── */
 const PostCard = ({ post }) => {
-  const imageSrc =
-    post.thumbImage ||
-    post.imageUrl ||
-    post.images?.[0]?.url ||
-    "https://via.placeholder.com/300";
-
-  const likes =
-    post.totalLikes ??
-    post.likes?.length ??
-    0;
+  const imageSrc = post.thumbImage || post.imageUrl || post.images?.[0]?.url || "https://via.placeholder.com/300";
+  const likes    = post.totalLikes ?? post.likes?.length ?? 0;
 
   return (
-    <div className="group relative overflow-hidden rounded-2xl bg-gray-100">
-
-      <img
-        src={imageSrc}
-        alt="post"
-        className="h-40 w-full object-cover transition duration-300 group-hover:scale-105 sm:h-48 md:h-56 lg:h-60"
-      />
-
-      <div className="absolute inset-0 flex items-end bg-gradient-to-t from-black/50 via-transparent to-transparent p-3 opacity-0 transition duration-200 group-hover:opacity-100">
-
-        <div className="flex items-center gap-1 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-gray-800 shadow">
-
-          <Heart
-            size={13}
-            className="fill-red-500 text-red-500"
-          />
-
-          {likes}
-
+    <div className="post-card" style={{ aspectRatio:"1", animation:"fadeUp .4s both" }}>
+      <img src={imageSrc} alt="post" style={{ width:"100%", height:"100%", objectFit:"cover" }} />
+      <div className="post-overlay">
+        <div style={{ display:"flex", alignItems:"center", gap:5,
+          background:"rgba(4,5,15,0.7)", backdropFilter:"blur(8px)",
+          border:"1px solid rgba(110,231,183,0.2)", borderRadius:20,
+          padding:"5px 10px" }}>
+          <Heart size={11} fill="#10B981" color="#10B981" />
+          <span style={{ fontSize:11, fontWeight:600, color:"#fff",
+            fontFamily:"'Plus Jakarta Sans',sans-serif" }}>{likes}</span>
         </div>
       </div>
     </div>
   );
 };
 
-/* EMPTY */
-const EmptyState = ({
-  label = "No moments yet",
-}) => (
-  <div className="flex flex-col items-center justify-center py-20 text-gray-400">
-
-    <LayoutGrid
-      size={44}
-      strokeWidth={1}
-      className="mb-3 text-gray-200"
-    />
-
-    <p className="text-base font-semibold">
+/* ─── EMPTY STATE ───────────────────────────────────────────── */
+const EmptyState = ({ label = "No moments yet" }) => (
+  <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
+    padding:"60px 20px", textAlign:"center" }}>
+    <div style={{ width:64, height:64, borderRadius:"50%",
+      background:"rgba(110,231,183,0.06)", border:"1px solid rgba(110,231,183,0.15)",
+      display:"flex", alignItems:"center", justifyContent:"center", marginBottom:16 }}>
+      <LayoutGrid size={24} color="rgba(110,231,183,0.4)" />
+    </div>
+    <p style={{ fontFamily:"'Fraunces',serif", fontSize:18, color:"rgba(255,255,255,0.5)", margin:"0 0 6px" }}>
       {label}
     </p>
-
-    <p className="mt-1 text-sm text-gray-400">
+    <p style={{ fontSize:12, color:"rgba(255,255,255,0.25)", fontFamily:"'Plus Jakarta Sans',sans-serif", margin:0 }}>
       Content shared here will appear in this section.
     </p>
-
   </div>
 );
 
