@@ -1,24 +1,78 @@
 import React, { useState, useRef } from "react";
+import { X } from "lucide-react";
 import api from "../services/api.js";
-
+import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar.jsx";
 import Sidebar from "../components/Sidebar.jsx";
 
+// Toast Component
+const Toast = ({ message, type = "error", onClose }) => {
+  React.useEffect(() => {
+    const timer = setTimeout(onClose, 3000);
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
+  return (
+    <div className={`fixed top-4 right-4 z-[60] p-4 rounded-2xl shadow-xl text-white transition-all duration-300 border-2 ${
+      type === "error" ? "bg-red-500 border-red-400" : "bg-green-500 border-green-400"
+    }`}>
+      <div className="flex items-center gap-2">
+        <span className="font-medium">{message}</span>
+        <button onClick={onClose} className="ml-2 text-white hover:text-gray-200 transition">
+          <X size={16} />
+        </button>
+      </div>
+    </div>
+  );
+};
+
 const CreatePost = () => {
   const [caption, setCaption] = useState("");
-  const [image, setImage] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
+  const [videoFile, setVideoFile] = useState(null);
+  const [fileType, setFileType] = useState(""); // "image" or "video"
 
   const [preview, setPreview] = useState("");
   const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState(null);
   const fileInputRef = useRef(null);
+  
+  const imageInputRef = useRef(null);
+  const videoInputRef = useRef(null);
+  const navigate = useNavigate();
+
 
   // Handle image selection
   const handleImageChange = (e) => {
     const file = e.target.files[0];
 
     if (file) {
-      setImage(file);
+      setImageFile(file);
+      setVideoFile(null); // Mutually exclusive as per API
+      setFileType("image");
       setPreview(URL.createObjectURL(file));
+      
+      // Clear video input field
+      if (videoInputRef.current) {
+        videoInputRef.current.value = "";
+      }
+    }
+  };
+
+  // Handle video selection
+  const handleVideoChange = (e) => {
+    const file = e.target.files[0];
+
+    if (file) {
+      setVideoFile(file);
+      setImageFile(null); // Mutually exclusive as per API
+      setFileType("video");
+      setPreview(URL.createObjectURL(file));
+      
+      // Clear image input field
+      if (imageInputRef.current) {
+        imageInputRef.current.value = "";
+      }
     }
   };
 
@@ -27,7 +81,9 @@ const CreatePost = () => {
     e.preventDefault();
 
     if (!image) {
-      alert("Please select an image");
+      setToast({ message: "Please select an image", type: "error" });
+    if (!imageFile && !videoFile) {
+      alert("Please select an image or a video");
       return;
     }
 
@@ -37,7 +93,12 @@ const CreatePost = () => {
       const formData = new FormData();
 
       formData.append("caption", caption);
-      formData.append("images", image);
+      
+      if (videoFile) {
+        formData.append("video", videoFile);
+      } else {
+        formData.append("images", imageFile);
+      }
 
       const res = await api.post("/post/upload-post", formData, {
         headers: {
@@ -45,19 +106,23 @@ const CreatePost = () => {
         },
       });
 
+      setToast({ message: res.data.message, type: "success" });
       alert(res.data.message);
+      navigate("/")
+
 
       // Reset
       setCaption("");
-      setImage(null);
+      setImageFile(null);
+      setVideoFile(null);
+      setFileType("");
       setPreview("");
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
+      if (imageInputRef.current) imageInputRef.current.value = "";
+      if (videoInputRef.current) videoInputRef.current.value = "";
 
     } catch (err) {
       console.error(err);
-      alert(err.response?.data?.message || "Failed to create post");
+      setToast({ message: err.response?.data?.message || "Failed to create post", type: "error" });
     } finally {
       setLoading(false);
     }
@@ -65,6 +130,15 @@ const CreatePost = () => {
 
   return (
     <div className="min-h-screen bg-gray-100">
+      {/* TOAST */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+
       <Navbar />
 
       <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-4 py-6 lg:grid-cols-3">
@@ -85,30 +159,56 @@ const CreatePost = () => {
             {/* FORM */}
             <form onSubmit={handleSubmit} className="space-y-6">
 
-              {/* IMAGE PREVIEW */}
+              {/* PREVIEW */}
               {preview && (
-                <div className="h-[400px] w-full overflow-hidden rounded-2xl border">
-                  <img
-                    src={preview}
-                    alt="Preview"
-                    className="h-full w-full object-cover"
-                  />
+                <div className="h-[400px] w-full overflow-hidden rounded-2xl border bg-black flex items-center justify-center">
+                  {fileType === "video" ? (
+                    <video
+                      src={preview}
+                      controls
+                      className="max-h-full max-w-full"
+                    />
+                  ) : (
+                    <img
+                      src={preview}
+                      alt="Preview"
+                      className="h-full w-full object-cover"
+                    />
+                  )}
                 </div>
               )}
 
-              {/* FILE INPUT */}
-              <div>
-                <label className="mb-2 block text-sm font-medium text-gray-700">
-                  Upload Image
-                </label>
+              {/* DUAL FILE INPUTS */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* IMAGE INPUT */}
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-gray-700">
+                    Upload Image
+                  </label>
 
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  ref={fileInputRef}
-                  className="w-full rounded-xl border border-gray-300 p-3"
-                />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    ref={imageInputRef}
+                    className="w-full rounded-xl border border-gray-300 p-3 text-sm"
+                  />
+                </div>
+
+                {/* VIDEO INPUT */}
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-gray-700">
+                    Upload Video
+                  </label>
+
+                  <input
+                    type="file"
+                    accept="video/*"
+                    onChange={handleVideoChange}
+                    ref={videoInputRef}
+                    className="w-full rounded-xl border border-gray-300 p-3 text-sm"
+                  />
+                </div>
               </div>
 
               {/* CAPTION */}
