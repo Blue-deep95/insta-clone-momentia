@@ -1,14 +1,18 @@
 // CommentsModal.jsx
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useSelector } from "react-redux";
 import api from "../services/api";
 import {
   Heart,
   X,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  MessageCircle
 } from "lucide-react";
+import { Virtuoso } from "react-virtuoso";
+import CommentInput from "./CommentInput.jsx";
+import { useGetCommentsQuery, useCreateCommentMutation } from "../slices/commentApi.js";
 
 // Toast Component
 const Toast = ({ message, type = "error", onClose }) => {
@@ -23,7 +27,7 @@ const Toast = ({ message, type = "error", onClose }) => {
     }`}>
       <div className="flex items-center gap-2">
         <span className="font-medium">{message}</span>
-        <button onClick={onClose} className="ml-2 text-white hover:text-gray-200 transition">
+        <button onClick={onClose} className="ml-2 text-white transition hover:text-gray-200">
           <X size={16} />
         </button>
       </div>
@@ -95,11 +99,11 @@ const CommentItem = ({ comment, postId, onReply }) => {
     <div className="flex flex-col gap-3">
       <div className="flex justify-between gap-3">
         {/* LEFT */}
-        <div className="flex gap-3 flex-1">
+        <div className="flex flex-1 gap-3">
           <img
             src={author?.profilePicture?.commentView || author?.profilePicture?.profileView || "https://i.pravatar.cc/150?img=50"}
             alt=""
-            className="w-9 h-9 rounded-full object-cover"
+            className="h-9 w-9 rounded-full object-cover"
           />
 
           <div>
@@ -112,14 +116,14 @@ const CommentItem = ({ comment, postId, onReply }) => {
               </span>
             </div>
 
-            <p className="text-sm text-zinc-300 mt-1">
+            <p className="mt-1 text-sm text-zinc-300">
               {referencedUsername && (
-                <span className="text-blue-400 mr-1">@{referencedUsername}</span>
+                <span className="mr-1 text-blue-400">@{referencedUsername}</span>
               )}
               {cleanedContent}
             </p>
 
-            <div className="flex items-center gap-4 mt-2 text-xs text-zinc-500 font-semibold">
+            <div className="mt-2 flex items-center gap-4 text-xs font-semibold text-zinc-500">
               <button onClick={() => onReply(comment)} className="hover:text-zinc-300">
                 Reply
               </button>
@@ -135,7 +139,7 @@ const CommentItem = ({ comment, postId, onReply }) => {
               className={`${isLiked ? "fill-red-500 text-red-500" : "text-zinc-500"}`}
             />
           </button>
-          <span className="text-[10px] text-zinc-500 mt-0.5">
+          <span className="mt-0.5 text-[10px] text-zinc-500">
             {likesCount}
           </span>
         </div>
@@ -146,9 +150,9 @@ const CommentItem = ({ comment, postId, onReply }) => {
         <div className="ml-12">
           <button 
             onClick={handleToggleReplies}
-            className="flex items-center gap-2 text-xs text-zinc-500 font-semibold hover:text-zinc-300 transition"
+            className="flex items-center gap-2 text-xs font-semibold text-zinc-500 transition hover:text-zinc-300"
           >
-            <div className="w-6 h-[1px] bg-zinc-700" />
+            <div className="h-[1px] w-6 bg-zinc-700" />
             {showReplies ? (
               <>Hide replies <ChevronUp size={14} /></>
             ) : (
@@ -169,7 +173,7 @@ const CommentItem = ({ comment, postId, onReply }) => {
               {hasMoreReplies && (
                 <button 
                   onClick={fetchReplies}
-                  className="text-xs text-zinc-500 font-semibold mt-2"
+                  className="mt-2 text-xs font-semibold text-zinc-500"
                 >
                   {loadingReplies ? "Loading..." : "Load more replies"}
                 </button>
@@ -249,7 +253,7 @@ export default function CommentsModal({ post, closeModal }) {
   const comments = commentsData?.comments || [];
 
   return (
-    <div className="fixed inset-0 bg-black/60 z-50 flex items-end justify-center">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60">
       {/* TOAST */}
       {toast && (
         <Toast
@@ -260,53 +264,53 @@ export default function CommentsModal({ post, closeModal }) {
       )}
 
       {/* MODAL */}
-      <div className="w-full max-w-md h-[80vh] bg-black rounded-t-3xl flex flex-col animate-slideUp">
+      <div className="animate-slideUp flex h-[80vh] w-full max-w-md flex-col rounded-t-3xl bg-black">
     <div 
-      className="fixed inset-0 bg-black/80 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 backdrop-blur-sm overflow-hidden"
+      className="fixed inset-0 z-[100] flex items-end justify-center overflow-hidden bg-black/80 p-0 backdrop-blur-sm sm:items-center sm:p-4"
       onClick={closeModal}
     >
       <div 
-        className="w-full max-w-xl lg:max-w-2xl h-[85vh] sm:h-[70vh] lg:h-[80vh] bg-zinc-950 sm:rounded-2xl flex flex-col animate-slideUp sm:animate-zoomIn shadow-2xl border border-zinc-800 overflow-hidden"
+        className="animate-slideUp sm:animate-zoomIn flex h-[85vh] w-full max-w-xl flex-col overflow-hidden border border-zinc-800 bg-zinc-950 shadow-2xl sm:h-[70vh] sm:rounded-2xl lg:h-[80vh] lg:max-w-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         
         {/* MOBILE HANDLE */}
-        <div className="flex justify-center py-3 sm:hidden border-b border-zinc-900">
-          <div className="w-12 h-1.5 bg-zinc-700 rounded-full" />
+        <div className="flex justify-center border-b border-zinc-900 py-3 sm:hidden">
+          <div className="h-1.5 w-12 rounded-full bg-zinc-700" />
         </div>
 
         {/* HEADER */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-900 bg-zinc-950">
+        <div className="flex items-center justify-between border-b border-zinc-900 bg-zinc-950 px-6 py-4">
           <div className="flex items-center gap-3">
-            <h2 className="text-lg font-bold text-white tracking-tight">Comments</h2>
-            <div className="px-2 py-0.5 bg-zinc-800 rounded text-xs text-zinc-400 font-medium">
+            <h2 className="text-lg font-bold tracking-tight text-white">Comments</h2>
+            <div className="rounded bg-zinc-800 px-2 py-0.5 text-xs font-medium text-zinc-400">
               {post.totalComments || 0}
             </div>
           </div>
           <button 
             onClick={closeModal}
-            className="p-2 hover:bg-zinc-900 rounded-full transition-colors text-zinc-400 hover:text-white"
+            className="rounded-full p-2 text-zinc-400 transition-colors hover:bg-zinc-900 hover:text-white"
           >
             <X size={20} />
           </button>
         </div>
 
         {/* COMMENTS LIST */}
-        <div className="flex-1 min-h-0 w-full overflow-hidden">
+        <div className="min-h-0 w-full flex-1 overflow-hidden">
           {isLoading && page === 1 ? (
-            <div className="h-full flex flex-col items-center justify-center gap-3 animate-pulse">
-               <div className="w-8 h-8 border-2 border-zinc-700 border-t-blue-500 rounded-full animate-spin" />
-               <p className="text-zinc-500 text-sm font-medium">Fetching conversation...</p>
+            <div className="flex h-full animate-pulse flex-col items-center justify-center gap-3">
+               <div className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-700 border-t-blue-500" />
+               <p className="text-sm font-medium text-zinc-500">Fetching conversation...</p>
             </div>
           ) : comments.length > 0 ? (
             <Virtuoso
               ref={virtuosoRef}
               data={comments}
-              className="w-full h-full"
+              className="h-full w-full"
               endReached={loadMore}
               increaseViewportBy={400}
               itemContent={(index, comment) => (
-                <div className="px-4 sm:px-6 pb-6 pt-2">
+                <div className="px-4 pb-6 pt-2 sm:px-6">
                   <CommentItem 
                     comment={comment} 
                     postId={post._id}
@@ -316,27 +320,27 @@ export default function CommentsModal({ post, closeModal }) {
               )}
               components={{
                 Footer: () => isFetching && (
-                  <div className="py-6 flex justify-center">
-                    <div className="w-5 h-5 border-2 border-zinc-700 border-t-blue-500 rounded-full animate-spin" />
+                  <div className="flex justify-center py-6">
+                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-zinc-700 border-t-blue-500" />
                   </div>
                 )
               }}
             />
           ) : (
-            <div className="h-full flex flex-col items-center justify-center text-zinc-500 space-y-4 px-10">
-              <div className="w-20 h-20 bg-zinc-900/50 rounded-full flex items-center justify-center border border-zinc-800/50">
+            <div className="flex h-full flex-col items-center justify-center space-y-4 px-10 text-zinc-500">
+              <div className="flex h-20 w-20 items-center justify-center rounded-full border border-zinc-800/50 bg-zinc-900/50">
                 <MessageCircle size={36} className="text-zinc-700" />
               </div>
-              <div className="text-center space-y-1">
+              <div className="space-y-1 text-center">
                 <p className="text-xl font-bold text-white">No comments yet</p>
-                <p className="text-sm text-zinc-500 max-w-[250px]">Start the conversation by sharing your thoughts on this post.</p>
+                <p className="max-w-[250px] text-sm text-zinc-500">Start the conversation by sharing your thoughts on this post.</p>
               </div>
             </div>
           )}
         </div>
 
         {/* INPUT SECTION */}
-        <div className="p-4 sm:p-6 bg-zinc-950 border-t border-zinc-900 sm:rounded-b-2xl">
+        <div className="border-t border-zinc-900 bg-zinc-950 p-4 sm:rounded-b-2xl sm:p-6">
           <CommentInput 
             input={input}
             setInput={setInput}
