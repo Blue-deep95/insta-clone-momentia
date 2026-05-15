@@ -250,9 +250,9 @@ const Register = () => {
           ))}
 
           {/* Floating cards */}
-          <FloatCard avatar="https://picsum.photos/seed/rc1/80/80" title="@Luna just joined" sub="Welcome to Momentia!" delay="0s" className="left-[8%] top-[17%]" />
-          <FloatCard avatar={null} title="New story posted" sub="2 min ago" delay="-3s" className="right-[7%] top-[62%]" />
-          <FloatCard avatar="https://picsum.photos/seed/rc3/80/80" title="@Kai shared a moment" sub="Bali, Indonesia" delay="-5s" className="bottom-[12%] left-[12%]" />
+          <FloatCard avatar="https://picsum.photos/seed/rc1/80/80" title="@Blue_deep just joined" sub="Welcome to Momentia!" delay="0s" className="left-[8%] top-[17%]" />
+          <FloatCard avatar={null} title="Vishnu_posted" sub="2 min ago" delay="-3s" className="right-[7%] top-[62%]" />
+          <FloatCard avatar="https://picsum.photos/seed/rc3/80/80" title="@indeti shared a moment" sub="Bali, Indonesia" delay="-5s" className="bottom-[12%] left-[12%]" />
 
           {/* Brand text */}
           <div style={{ position: "relative", zIndex: 5, textAlign: "center", padding: "0 52px", marginTop: -20 }}>

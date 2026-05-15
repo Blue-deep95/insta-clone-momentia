@@ -145,7 +145,7 @@ const Login = () => {
 
           {/* Animated grid */}
           <div style={{ position: "absolute", inset: 0, zIndex: 0, animation: "gridPulse 5s ease-in-out infinite",
-            backgroundImage: "linear-gradient(rgba(110,231,183,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(110,231,183,0.07) 1px, transparent 1px)",
+            backgroundImage: "linear-gradient(rgba(17, 41, 177, 0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(110,231,183,0.07) 1px, transparent 1px)",
             backgroundSize: "52px 52px" }} />
 
           {/* Diagonal SVG lines */}
@@ -224,7 +224,7 @@ const Login = () => {
 
           {/* Floating cards */}
           <FloatCard avatar="https://picsum.photos/seed/fc1/80/80" title="@Spark-just posted" sub="Santorini, Greece" delay="0s" className="top-[17%] left-[8%]" />
-          <FloatCard avatar={null} title="@Spark-just posted" sub="shared today" delay="-3s" className="top-[62%] right-[7%]" />
+          <FloatCard avatar={null} title="@Mohana_rupa-just posted" sub="shared today" delay="-3s" className="top-[62%] right-[7%]" />
           <FloatCard avatar="https://picsum.photos/seed/fc3/80/80" title="@Teddy.photo liked" sub="your latest story" delay="-5s" className="bottom-[12%] left-[12%]" />
 
           {/* Brand text — sits above center-left */}
