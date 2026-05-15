@@ -14,10 +14,10 @@ const FloatCard = ({ avatar, title, sub, delay, className }) => (
     }}
   >
     {avatar ? (
-      <img src={avatar} alt="" className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+      <img src={avatar} alt="" className="h-8 w-8 flex-shrink-0 rounded-full object-cover"
         style={{ outline: "1.5px solid rgba(110,231,183,0.2)" }} />
     ) : (
-      <span className="w-2 h-2 rounded-full flex-shrink-0"
+      <span className="h-2 w-2 flex-shrink-0 rounded-full"
         style={{ background: "#34EEB0", boxShadow: "0 0 10px 3px rgba(52,238,176,0.5)" }} />
     )}
     <div>
@@ -32,14 +32,14 @@ const Field = ({ label, type = "text", name, placeholder, value, onChange, disab
   const [focused, setFocused] = useState(false);
   return (
     <div className="mb-4">
-      <label className="block mb-2" style={{ fontSize: 10, fontWeight: 600, color: "#8896B3", letterSpacing: "0.9px", textTransform: "uppercase", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+      <label className="mb-2 block" style={{ fontSize: 10, fontWeight: 600, color: "#8896B3", letterSpacing: "0.9px", textTransform: "uppercase", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
         {label}
       </label>
       <input
         type={type} name={name} placeholder={placeholder} value={value}
         onChange={onChange} required disabled={disabled}
         onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
-        className="w-full rounded-xl px-5 py-3.5 text-sm outline-none transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full rounded-xl px-5 py-3.5 text-sm outline-none transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50"
         style={{
           background: disabled ? "#F0EEF8" : focused ? "#fff" : "#F8F7FF",
           border: focused ? "1.5px solid #10B981" : "1.5px solid #E2DCFF",
@@ -250,8 +250,8 @@ const Register = () => {
           ))}
 
           {/* Floating cards */}
-          <FloatCard avatar="https://picsum.photos/seed/rc1/80/80" title="@Luna just joined" sub="Welcome to Momentia!" delay="0s" className="top-[17%] left-[8%]" />
-          <FloatCard avatar={null} title="New story posted" sub="2 min ago" delay="-3s" className="top-[62%] right-[7%]" />
+          <FloatCard avatar="https://picsum.photos/seed/rc1/80/80" title="@Luna just joined" sub="Welcome to Momentia!" delay="0s" className="left-[8%] top-[17%]" />
+          <FloatCard avatar={null} title="New story posted" sub="2 min ago" delay="-3s" className="right-[7%] top-[62%]" />
           <FloatCard avatar="https://picsum.photos/seed/rc3/80/80" title="@Kai shared a moment" sub="Bali, Indonesia" delay="-5s" className="bottom-[12%] left-[12%]" />
 
           {/* Brand text */}
@@ -300,7 +300,7 @@ const Register = () => {
           <form onSubmit={handleRegister} className="right-form w-full" style={{ maxWidth: 400, position: "relative", zIndex: 2 }}>
 
             {/* Mobile brand */}
-            <div className="flex items-center gap-3 mb-8 lg:hidden">
+            <div className="mb-8 flex items-center gap-3 lg:hidden">
               <div style={{ width: 38, height: 38, borderRadius: 10, background: "#04050F",
                 display: "flex", alignItems: "center", justifyContent: "center",
                 fontFamily: "'Fraunces', serif", fontSize: 20, color: "#6EE7B7", fontWeight: 700 }}>M</div>
@@ -337,7 +337,7 @@ const Register = () => {
 
             {/* Email + Send OTP */}
             <div className="mb-4">
-              <label className="block mb-2" style={{ fontSize: 10, fontWeight: 600, color: "#8896B3", letterSpacing: "0.9px", textTransform: "uppercase", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+              <label className="mb-2 block" style={{ fontSize: 10, fontWeight: 600, color: "#8896B3", letterSpacing: "0.9px", textTransform: "uppercase", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                 Email address
               </label>
               <div className="flex gap-2">
@@ -357,7 +357,7 @@ const Register = () => {
                   type="button"
                   onClick={handleSendOtp}
                   disabled={otpStatus === "sending" || otpStatus === "verifying" || otpStatus === "verified"}
-                  className="send-otp-btn flex-shrink-0 rounded-xl px-4 py-3 text-xs font-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="send-otp-btn font-600 flex-shrink-0 rounded-xl px-4 py-3 text-xs transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50"
                   style={{
                     background: otpStatus === "verified" ? "rgba(16,185,129,0.1)" : "transparent",
                     border: otpStatus === "verified" ? "1.5px solid #10B981" : "1.5px solid #E2DCFF",
@@ -381,8 +381,8 @@ const Register = () => {
 
             {/* OTP verify row */}
             {(otpStatus === "sent" || otpStatus === "verifying") && (
-              <div className="mb-4 otp-appear">
-                <label className="block mb-2" style={{ fontSize: 10, fontWeight: 600, color: "#8896B3", letterSpacing: "0.9px", textTransform: "uppercase", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+              <div className="otp-appear mb-4">
+                <label className="mb-2 block" style={{ fontSize: 10, fontWeight: 600, color: "#8896B3", letterSpacing: "0.9px", textTransform: "uppercase", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                   Verification code
                 </label>
                 <div className="flex gap-2">
@@ -391,7 +391,7 @@ const Register = () => {
                     type="button"
                     onClick={handleVerifyOtp}
                     disabled={otpStatus === "verifying" || otp.length < 4}
-                    className="verify-btn flex-shrink-0 rounded-xl px-5 py-3 text-xs font-bold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="verify-btn flex-shrink-0 rounded-xl px-5 py-3 text-xs font-bold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50"
                     style={{
                       background: "linear-gradient(135deg, #059669 0%, #10B981 100%)",
                       color: "#fff",
@@ -418,7 +418,7 @@ const Register = () => {
 
             {/* Verified pill */}
             {otpStatus === "verified" && (
-              <div className="mb-4 otp-appear" style={{ display: "inline-flex", alignItems: "center", gap: 7,
+              <div className="otp-appear mb-4" style={{ display: "inline-flex", alignItems: "center", gap: 7,
                 borderRadius: 20, padding: "5px 14px", fontSize: 12, fontWeight: 500,
                 background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.2)", color: "#059669",
                 fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
@@ -495,7 +495,7 @@ const SocialBtn = ({ icon, label, iconBg, iconColor }) => {
   return (
     <button type="button"
       onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
-      className="flex-1 flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl text-[13px] font-medium transition-all duration-200"
+      className="flex flex-1 items-center justify-center gap-2.5 rounded-xl px-4 py-3 text-[13px] font-medium transition-all duration-200"
       style={{
         border: hov ? "1.5px solid #10B981" : "1.5px solid #E2DCFF",
         background: hov ? "#F0FDF8" : "#fff",
@@ -504,7 +504,7 @@ const SocialBtn = ({ icon, label, iconBg, iconColor }) => {
         cursor: "pointer",
       }}
     >
-      <span className="w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-bold flex-shrink-0"
+      <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full text-[11px] font-bold"
         style={{ background: iconBg, color: iconColor, border: label === "Google" ? "1px solid #eee" : "none" }}>
         {icon}
       </span>

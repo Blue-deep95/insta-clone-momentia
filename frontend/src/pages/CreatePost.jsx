@@ -18,7 +18,7 @@ const Toast = ({ message, type = "error", onClose }) => {
     }`}>
       <div className="flex items-center gap-2">
         <span className="font-medium">{message}</span>
-        <button onClick={onClose} className="ml-2 text-white hover:text-gray-200 transition">
+        <button onClick={onClose} className="ml-2 text-white transition hover:text-gray-200">
           <X size={16} />
         </button>
       </div>
@@ -80,10 +80,8 @@ const CreatePost = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!image) {
-      setToast({ message: "Please select an image", type: "error" });
     if (!imageFile && !videoFile) {
-      alert("Please select an image or a video");
+      setToast({ message: "Please select an image or a video", type: "error" });
       return;
     }
 
@@ -161,7 +159,7 @@ const CreatePost = () => {
 
               {/* PREVIEW */}
               {preview && (
-                <div className="h-[400px] w-full overflow-hidden rounded-2xl border bg-black flex items-center justify-center">
+                <div className="flex h-[400px] w-full items-center justify-center overflow-hidden rounded-2xl border bg-black">
                   {fileType === "video" ? (
                     <video
                       src={preview}
@@ -179,7 +177,7 @@ const CreatePost = () => {
               )}
 
               {/* DUAL FILE INPUTS */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 {/* IMAGE INPUT */}
                 <div>
                   <label className="mb-2 block text-sm font-medium text-gray-700">
