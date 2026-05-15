@@ -10,6 +10,27 @@ import {
   ChevronUp
 } from "lucide-react";
 
+// Toast Component
+const Toast = ({ message, type = "error", onClose }) => {
+  useEffect(() => {
+    const timer = setTimeout(onClose, 3000);
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
+  return (
+    <div className={`fixed top-4 right-4 z-[60] p-4 rounded-2xl shadow-xl text-white transition-all duration-300 border-2 ${
+      type === "error" ? "bg-red-500 border-red-400" : "bg-green-500 border-green-400"
+    }`}>
+      <div className="flex items-center gap-2">
+        <span className="font-medium">{message}</span>
+        <button onClick={onClose} className="ml-2 text-white hover:text-gray-200 transition">
+          <X size={16} />
+        </button>
+      </div>
+    </div>
+  );
+};
+
 const CommentItem = ({ comment, postId, onReply }) => {
   const [isLiked, setIsLiked] = useState(comment.isLiked || false);
   const [likesCount, setLikesCount] = useState(comment.totalLikes || 0);
@@ -169,6 +190,7 @@ export default function CommentsModal({ post, closeModal }) {
   const [loading, setLoading] = useState(false);
   const [input, setInput] = useState("");
   const [replyTo, setReplyTo] = useState(null);
+  const [toast, setToast] = useState(null);
 
   // FETCH COMMENTS
   const fetchComments = async (reset = false) => {
@@ -245,9 +267,9 @@ export default function CommentsModal({ post, closeModal }) {
     } catch (err) {
       console.error("Error adding comment", err);
       if (err.response?.data?.message) {
-        alert(err.response.data.message);
+        setToast({ message: err.response.data.message, type: "error" });
       } else {
-        alert("Failed to post comment.");
+        setToast({ message: "Failed to post comment.", type: "error" });
       }
     }
   };
@@ -262,6 +284,15 @@ export default function CommentsModal({ post, closeModal }) {
 
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-end justify-center">
+      {/* TOAST */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+
       {/* MODAL */}
       <div className="w-full max-w-md h-[80vh] bg-black rounded-t-3xl flex flex-col animate-slideUp">
         

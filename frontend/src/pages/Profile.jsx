@@ -115,6 +115,33 @@ const css = `
   /* avatar ring */
   .avatar-ring { animation:avatarGlow 3s ease-in-out infinite; }
 
+  /* camera icon hover */
+  @keyframes cameraHover { 
+    0% { transform:scale(1); }
+    50% { transform:scale(1.15); }
+    100% { transform:scale(1); }
+  }
+  
+  .camera-icon-btn {
+    position:absolute; bottom:4px; right:4px; width:32px; height:32px;
+    border-radius:50%; background:linear-gradient(135deg, #059669 0%, #10B981 100%);
+    border:2px solid #04050F; display:flex; align-items:center; justify-content:center;
+    cursor:pointer; transition:all .2s ease; box-shadow:0 4px 14px rgba(16,185,129,0.3);
+    z-index:10;
+  }
+  
+  .camera-icon-btn:hover:not(:disabled) {
+    transform:scale(1.1); box-shadow:0 6px 20px rgba(16,185,129,0.5), 0 0 16px rgba(16,185,129,0.3);
+  }
+  
+  .camera-icon-btn:active:not(:disabled) {
+    transform:scale(0.95);
+  }
+  
+  .camera-icon-btn:disabled {
+    cursor:not-allowed; opacity:0.8;
+  }
+
   /* scrollbar */
   ::-webkit-scrollbar { width:4px; height:4px; }
   ::-webkit-scrollbar-track { background:transparent; }
@@ -145,6 +172,7 @@ const Profile = () => {
   const [avatarFile,   setAvatarFile]   = useState(null);
   const [avatarPrev,   setAvatarPrev]   = useState(null);
   const [saving,       setSaving]       = useState(false);
+  const [avatarUploading, setAvatarUploading] = useState(false);
   const [showFollowers,setShowFollowers]= useState(false);
   const [showFollowing,setShowFollowing]= useState(false);
   const [form, setForm] = useState({ name:"", bio:"", gender:"" });
@@ -180,8 +208,28 @@ const Profile = () => {
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    
+    // Instant preview
     setAvatarFile(file);
     setAvatarPrev(URL.createObjectURL(file));
+    
+    // Auto-upload if not in edit mode (for seamless UX)
+    if (!editMode) {
+      const uploadAvatar = async () => {
+        setAvatarUploading(true);
+        try {
+          const fd = new FormData();
+          fd.append("avatar", file);
+          await api.post("/profile/upload-avatar", fd);
+          setAvatarFile(null);
+          await fetchProfile();
+        } catch (err) {
+          console.error("Avatar upload failed:", err);
+          setAvatarUploading(false);
+        }
+      };
+      uploadAvatar();
+    }
   };
 
   const handleSave = async () => {
@@ -307,11 +355,11 @@ const Profile = () => {
                         border:"3px solid rgba(110,231,183,0.5)", padding:3, background:"#04050F" }}>
                         {avatarSrc ? (
                           <img src={avatarSrc} alt="avatar"
-                            style={{ width:"100%", height:"100%", borderRadius:"50%", objectFit:"cover", display:"block" }} />
+                            style={{ width:"100%", height:"100%", borderRadius:"50%", objectFit:"cover", display:"block", opacity: avatarUploading ? 0.6 : 1, transition: "opacity .2s" }} />
                         ) : (
                           <div style={{ width:"100%", height:"100%", borderRadius:"50%",
                             background:"linear-gradient(135deg, rgba(110,231,183,0.15) 0%, rgba(99,102,241,0.1) 100%)",
-                            display:"flex", alignItems:"center", justifyContent:"center" }}>
+                            display:"flex", alignItems:"center", justifyContent:"center", opacity: avatarUploading ? 0.6 : 1, transition: "opacity .2s" }}>
                             <span style={{ fontFamily:"'Fraunces',serif", fontSize:36, fontWeight:700, color:"#6EE7B7" }}>
                               {profile?.name?.[0] || "U"}
                             </span>
@@ -319,12 +367,21 @@ const Profile = () => {
                         )}
                       </div>
 
-                      {editMode && (
-                        <label style={{ position:"absolute", bottom:4, right:4, width:28, height:28,
-                          borderRadius:"50%", background:"#10B981", border:"2px solid #04050F",
-                          display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer" }}>
-                          <Camera size={13} color="#fff" />
-                          <input type="file" hidden accept="image/*" onChange={handleAvatarChange} />
+                      {/* Camera icon - show always if own profile */}
+                      {isOwnProfile && (
+                        <label className="camera-icon-btn" title={avatarSrc ? "Change profile picture" : "Add profile picture"} style={{ opacity: avatarUploading ? 0.7 : 1 }}>
+                          {avatarUploading ? (
+                            <span style={{ width:16, height:16, border:"2px solid rgba(255,255,255,0.3)", borderTop:"2px solid #fff", borderRadius:"50%", animation:"spin .7s linear infinite", display:"inline-block" }} />
+                          ) : (
+                            <Camera size={16} color="#fff" />
+                          )}
+                          <input 
+                            type="file" 
+                            hidden 
+                            accept="image/*" 
+                            onChange={handleAvatarChange}
+                            disabled={avatarUploading}
+                          />
                         </label>
                       )}
                     </div>

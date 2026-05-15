@@ -1,8 +1,30 @@
 import React, { useState, useRef } from "react";
+import { X } from "lucide-react";
 import api from "../services/api.js";
 
 import Navbar from "../components/Navbar.jsx";
 import Sidebar from "../components/Sidebar.jsx";
+
+// Toast Component
+const Toast = ({ message, type = "error", onClose }) => {
+  React.useEffect(() => {
+    const timer = setTimeout(onClose, 3000);
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
+  return (
+    <div className={`fixed top-4 right-4 z-[60] p-4 rounded-2xl shadow-xl text-white transition-all duration-300 border-2 ${
+      type === "error" ? "bg-red-500 border-red-400" : "bg-green-500 border-green-400"
+    }`}>
+      <div className="flex items-center gap-2">
+        <span className="font-medium">{message}</span>
+        <button onClick={onClose} className="ml-2 text-white hover:text-gray-200 transition">
+          <X size={16} />
+        </button>
+      </div>
+    </div>
+  );
+};
 
 const CreatePost = () => {
   const [caption, setCaption] = useState("");
@@ -10,6 +32,7 @@ const CreatePost = () => {
 
   const [preview, setPreview] = useState("");
   const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState(null);
   const fileInputRef = useRef(null);
 
   // Handle image selection
@@ -27,7 +50,7 @@ const CreatePost = () => {
     e.preventDefault();
 
     if (!image) {
-      alert("Please select an image");
+      setToast({ message: "Please select an image", type: "error" });
       return;
     }
 
@@ -45,7 +68,7 @@ const CreatePost = () => {
         },
       });
 
-      alert(res.data.message);
+      setToast({ message: res.data.message, type: "success" });
 
       // Reset
       setCaption("");
@@ -57,7 +80,7 @@ const CreatePost = () => {
 
     } catch (err) {
       console.error(err);
-      alert(err.response?.data?.message || "Failed to create post");
+      setToast({ message: err.response?.data?.message || "Failed to create post", type: "error" });
     } finally {
       setLoading(false);
     }
@@ -65,6 +88,15 @@ const CreatePost = () => {
 
   return (
     <div className="min-h-screen bg-gray-100">
+      {/* TOAST */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+
       <Navbar />
 
       <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-4 py-6 lg:grid-cols-3">
