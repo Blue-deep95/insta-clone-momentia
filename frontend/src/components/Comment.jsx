@@ -1,14 +1,204 @@
+<<<<<<< HEAD
 import React, { useState, useCallback, useRef } from "react";
 import { X, MessageCircle } from "lucide-react";
 import { Virtuoso } from "react-virtuoso";
 import CommentItem from "./CommentItem";
 import CommentInput from "./CommentInput";
 import { useGetCommentsQuery, useCreateCommentMutation } from "../slices/commentApi";
+=======
+// CommentsModal.jsx
+
+import React, { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
+import api from "../services/api";
+import {
+  Heart,
+  X,
+  ChevronDown,
+  ChevronUp
+} from "lucide-react";
+
+// Toast Component
+const Toast = ({ message, type = "error", onClose }) => {
+  useEffect(() => {
+    const timer = setTimeout(onClose, 3000);
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
+  return (
+    <div className={`fixed top-4 right-4 z-[60] p-4 rounded-2xl shadow-xl text-white transition-all duration-300 border-2 ${
+      type === "error" ? "bg-red-500 border-red-400" : "bg-green-500 border-green-400"
+    }`}>
+      <div className="flex items-center gap-2">
+        <span className="font-medium">{message}</span>
+        <button onClick={onClose} className="ml-2 text-white hover:text-gray-200 transition">
+          <X size={16} />
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const CommentItem = ({ comment, postId, onReply }) => {
+  const [isLiked, setIsLiked] = useState(comment.isLiked || false);
+  const [likesCount, setLikesCount] = useState(comment.totalLikes || 0);
+  const [showReplies, setShowReplies] = useState(false);
+  const [replies, setReplies] = useState(comment.replies || []);
+  const [repliesPage, setRepliesPage] = useState(1);
+  const [hasMoreReplies, setHasMoreReplies] = useState(comment.totalReplies > 0);
+  const [loadingReplies, setLoadingReplies] = useState(false);
+
+  // Map backend field authorDetails to a consistent internal format if needed
+  const author = comment.authorDetails || comment.author;
+  const referencedUsername = comment.referencedUser?.username;
+  const cleanedContent = (() => {
+    if (!comment.content) return "";
+    const trimmed = comment.content.trim();
+    if (referencedUsername && trimmed.startsWith(`@${referencedUsername}`)) {
+      return trimmed.replace(new RegExp(`^@${referencedUsername}\\s*`), "");
+    }
+    return trimmed;
+  })();
+
+  const toggleLike = async () => {
+    try {
+      const res = await api.post(`/comment/toggle-like/${comment._id}`);
+      setIsLiked(res.data.isLiked);
+      setLikesCount(prev => res.data.isLiked ? prev + 1 : prev - 1);
+    } catch (err) {
+      console.error("Error liking comment", err);
+    }
+  };
+
+  const fetchReplies = async () => {
+    if (loadingReplies) return;
+    setLoadingReplies(true);
+    try {
+      const res = await api.get(`/comment/get-replies/${postId}/${comment._id}/${repliesPage}`);
+      // Backend returns { replies: [...] }
+      const newReplies = res.data.replies;
+      if (newReplies && Array.isArray(newReplies) && newReplies.length > 0) {
+        setReplies(prev => [...prev, ...newReplies]);
+        setRepliesPage(prev => prev + 1);
+        if (newReplies.length < 25) setHasMoreReplies(false);
+      } else {
+        setHasMoreReplies(false);
+      }
+    } catch (err) {
+      console.error("Error fetching replies", err);
+      setHasMoreReplies(false);
+    } finally {
+      setLoadingReplies(false);
+    }
+  };
+
+  const handleToggleReplies = () => {
+    if (!showReplies && replies.length === 0) {
+      fetchReplies();
+    }
+    setShowReplies(!showReplies);
+  };
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex justify-between gap-3">
+        {/* LEFT */}
+        <div className="flex gap-3 flex-1">
+          <img
+            src={author?.profilePicture?.commentView || author?.profilePicture?.profileView || "https://i.pravatar.cc/150?img=50"}
+            alt=""
+            className="w-9 h-9 rounded-full object-cover"
+          />
+
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-semibold text-white">
+                {author?.username || "user"}
+              </h3>
+              <span className="text-xs text-zinc-500">
+                {comment.createdAt ? new Date(comment.createdAt).toLocaleDateString() : "Just now"}
+              </span>
+            </div>
+
+            <p className="text-sm text-zinc-300 mt-1">
+              {referencedUsername && (
+                <span className="text-blue-400 mr-1">@{referencedUsername}</span>
+              )}
+              {cleanedContent}
+            </p>
+
+            <div className="flex items-center gap-4 mt-2 text-xs text-zinc-500 font-semibold">
+              <button onClick={() => onReply(comment)} className="hover:text-zinc-300">
+                Reply
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* RIGHT */}
+        <div className="flex flex-col items-center">
+          <button onClick={toggleLike}>
+            <Heart
+              size={14}
+              className={`${isLiked ? "fill-red-500 text-red-500" : "text-zinc-500"}`}
+            />
+          </button>
+          <span className="text-[10px] text-zinc-500 mt-0.5">
+            {likesCount}
+          </span>
+        </div>
+      </div>
+
+      {/* REPLIES SECTION */}
+      {(comment.totalReplies > 0 || replies.length > 0) && (
+        <div className="ml-12">
+          <button 
+            onClick={handleToggleReplies}
+            className="flex items-center gap-2 text-xs text-zinc-500 font-semibold hover:text-zinc-300 transition"
+          >
+            <div className="w-6 h-[1px] bg-zinc-700" />
+            {showReplies ? (
+              <>Hide replies <ChevronUp size={14} /></>
+            ) : (
+              <>View replies ({comment.totalReplies || replies.length}) <ChevronDown size={14} /></>
+            )}
+          </button>
+
+          {showReplies && (
+            <div className="mt-4 space-y-4 border-l border-zinc-800 pl-4">
+              {replies.map(reply => (
+                <CommentItem 
+                  key={reply._id || Math.random()} 
+                  comment={reply} 
+                  postId={postId} 
+                  onReply={onReply}
+                />
+              ))}
+              {hasMoreReplies && (
+                <button 
+                  onClick={fetchReplies}
+                  className="text-xs text-zinc-500 font-semibold mt-2"
+                >
+                  {loadingReplies ? "Loading..." : "Load more replies"}
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+>>>>>>> origin/main
 
 export default function CommentsModal({ post, closeModal }) {
   const [page, setPage] = useState(1);
   const [input, setInput] = useState("");
   const [replyTo, setReplyTo] = useState(null);
+<<<<<<< HEAD
+=======
+  const [toast, setToast] = useState(null);
+>>>>>>> origin/main
   const virtuosoRef = useRef(null);
 
   const { 
@@ -43,6 +233,14 @@ export default function CommentsModal({ post, closeModal }) {
       }
     } catch (err) {
       console.error("Error adding comment", err);
+<<<<<<< HEAD
+=======
+      if (err.response?.data?.message) {
+        setToast({ message: err.response.data.message, type: "error" });
+      } else {
+        setToast({ message: "Failed to post comment.", type: "error" });
+      }
+>>>>>>> origin/main
       alert(err.data?.message || "Failed to post comment.");
     }
   };
@@ -66,6 +264,21 @@ export default function CommentsModal({ post, closeModal }) {
   const comments = commentsData?.comments || [];
 
   return (
+<<<<<<< HEAD
+=======
+    <div className="fixed inset-0 bg-black/60 z-50 flex items-end justify-center">
+      {/* TOAST */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+
+      {/* MODAL */}
+      <div className="w-full max-w-md h-[80vh] bg-black rounded-t-3xl flex flex-col animate-slideUp">
+>>>>>>> origin/main
     <div 
       className="fixed inset-0 bg-black/80 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 backdrop-blur-sm overflow-hidden"
       onClick={closeModal}
