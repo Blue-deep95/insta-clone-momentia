@@ -455,19 +455,63 @@ Saves or unsaves a post for the authenticated user.
 *All routes in this section require a valid Bearer Token.*
 
 ### 1. Get Comments
-Retrieves comments for a specific post.
-*   **URL:** `/comment/get-comments/:postid`
+Retrieves paginated top-level comments for a specific post, sorted by popularity and recency.
+*   **URL:** `/comment/get-comments/:postid/:page`
 *   **Method:** `GET`
+*   **Parameters:**
+    *   `postid` (Post ID)
+    *   `page` (Number, optional, default: 1)
 *   **Success Response (200):**
     ```json
     {
-      "comments": [ { ... } ],
+      "comments": [
+        {
+          "_id": "...",
+          "author": "...",
+          "post": "...",
+          "content": "...",
+          "totalLikes": 0,
+          "totalReplies": 0,
+          "authorDetails": { 
+            "username": "...", 
+            "profilePicture": { "url": "...", "public_id": "..." } 
+          },
+          "isLiked": true/false
+        }
+      ],
       "message": "Comments fetched successfully"
     }
     ```
-*   *Note: Currently work in progress in the backend (logic is empty).*
 
-### 2. Create Comment
+### 2. Get Replies
+Retrieves paginated replies for a specific parent comment.
+*   **URL:** `/comment/get-replies/:postid/:parentid/:page`
+*   **Method:** `GET`
+*   **Parameters:**
+    *   `postid` (Post ID)
+    *   `parentid` (Parent Comment ID)
+    *   `page` (Number, optional, default: 1)
+*   **Success Response (200):**
+    ```json
+    {
+      "replies": [
+        {
+          "_id": "...",
+          "author": "...",
+          "post": "...",
+          "parent": "...",
+          "content": "...",
+          "totalLikes": 0,
+          "authorDetails": { "username": "...", "profilePicture": { ... } },
+          "referencedUser": { "username": "...", "profilePicture": { ... } },
+          "isLiked": true/false
+        }
+      ],
+      "message": "Replies fetched successfully"
+    }
+    ```
+
+### 3. Create Comment
 Adds a new comment or a reply to an existing comment.
 *   **URL:** `/comment/create-comment`
 *   **Method:** `POST`
@@ -485,7 +529,7 @@ Adds a new comment or a reply to an existing comment.
     { "message": "Comment added successfully", "comment": { ... } }
     ```
 
-### 3. Update Comment
+### 4. Update Comment
 Updates the content of an existing comment.
 *   **URL:** `/comment/update-comment`
 *   **Method:** `PUT`
@@ -498,7 +542,7 @@ Updates the content of an existing comment.
     { "message": "Comment edit succesful" }
     ```
 
-### 4. Delete Comment
+### 5. Delete Comment
 Deletes an existing comment and all its nested replies, updating associated counts.
 *   **URL:** `/comment/delete-comment/:commentId`
 *   **Method:** `DELETE`
@@ -511,7 +555,7 @@ Deletes an existing comment and all its nested replies, updating associated coun
     }
     ```
 
-### 5. Toggle Like
+### 6. Toggle Like
 Likes or unlikes a comment.
 *   **URL:** `/comment/toggle-like/:commentid`
 *   **Method:** `POST`

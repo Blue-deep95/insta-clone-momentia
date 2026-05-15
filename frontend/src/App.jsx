@@ -8,6 +8,7 @@ import Profile from "./pages/Profile.jsx"
 import SearchPage from "./pages/SearchPage.jsx"
 import CreatePost from "./pages/CreatePost.jsx"
 
+
 import ProtectedRoutes from './components/ProtectedRoutes.jsx'
 
 export default function App() {
@@ -22,6 +23,8 @@ export default function App() {
           
           <Route path="/" element={<ProtectedRoutes />}>
             <Route path="/profile" element={<Profile />} />
+            <Route path="/profile/:userId" element={<Profile />} />
+            
             <Route path="/search" element={<SearchPage />} />
             <Route path="/" element={<Feed />} />
             <Route path="/create-post" element={<CreatePost />} />

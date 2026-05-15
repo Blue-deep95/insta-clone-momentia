@@ -82,7 +82,7 @@ router.get("/get-userposts/:id",
             // IMPORTANT : For now we are letting any user see other user posts 
             let { id } = req.params;
             const userId = req.user._id;
-            
+
             if (!id) {
                 id = userId;
             }
@@ -153,17 +153,60 @@ router.get("/get-profile/:id",
 )
 
 // route for suggested profile cards in feed sidebar
-// either need some work for this route or remove it completetly
 router.get("/get-suggested-users",
     async (req, res) => {
-        try {
-            const currentUserId = req.user._id
-            const users = await User.find({ _id: { $ne: currentUserId } })
-                .select("_id username name profilePicture.profileView profilePicture.commentView")
-                .sort({ followers: -1 })
-                .limit(6)
 
-            return res.status(200).json({ users, message: "Suggested users fetched successfully" })
+        try {
+            const currentUserId = new mongoose.Types.ObjectId(req.user._id)
+
+            const suggestedUsers = await User.aggregate([
+                // 1. Exclude the current user
+                { $match: { _id: { $ne: currentUserId } } },
+
+                // 2. Lookup in follows collection to see if current user follows this person
+                {
+                    $lookup: {
+                        from: 'follows',
+                        let: { targetId: '$_id' },
+                        pipeline: [
+                            {
+                                $match: {
+                                    $expr: {
+                                        $and: [
+                                            { $eq: ['$host', currentUserId] },
+                                            { $eq: ['$target', '$$targetId'] }
+                                        ]
+                                    }
+                                }
+                            }
+                        ],
+                        as: 'followStatus'
+                    }
+                },
+
+                // 3. Keep only those where followStatus is empty (not following)
+                { $match: { followStatus: { $size: 0 } } },
+
+                // 4. Sort by popularity (followers) and limit to 6
+                { $sort: { followers: -1 } },
+                { $limit: 6 },
+
+                // 5. Project required fields
+                {
+                    $project: {
+                        _id: 1,
+                        username: 1,
+                        name: 1,
+                        profilePicture: {
+                            profileView: 1,
+                            commentView: 1
+                        },
+                        followers: 1
+                    }
+                }
+            ])
+
+            return res.status(200).json({ users: suggestedUsers, message: "Suggested users fetched successfully" })
         }
         catch (err) {
             console.log('Error in get-suggested-users route', err)
