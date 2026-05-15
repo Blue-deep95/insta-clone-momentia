@@ -1,12 +1,14 @@
 const express = require('express')
-const app = express()
 require("dotenv").config()
 const cors = require("cors")
 const cookieParser = require("cookie-parser")
 
 // to implement socket io properly need to create http server
 const { createServer } = require('node:http')
+const { Server } = require('socket.io')
+const app = express()
 const server = createServer(app)
+const io = new Server(server) // create web socket server along with 
 
 const { protect } = require('./middleware/authMiddleware.js')
 
@@ -60,6 +62,23 @@ app.use("/api/comment", protect, commentRoutes)
 app.use("/api/follow", protect, followRoutes)
 app.use("/api/feed", protect, feedRoutes)
 app.use("/api/search", protect, searchRoutes)
+
+
+// web socket implementation starts here 
+io.on('connection', (socket) => {
+    console.log(`A user logged in ${socket.id}`)
+
+    socket.on('disconnect', () => {
+        console.log(`A user disconnected ${socket.id}`)
+    })
+
+    socket.on('message', (msg) => {
+        console.log(`Message from the user${socket.id} is  ${msg}`)
+        io.emit('msg', `${msg}`)
+    })
+
+
+})
 
 // newer listen that handles both http and web socket connections
 server.listen(PORT, () => console.log('server running on', PORT))

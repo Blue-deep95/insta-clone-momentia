@@ -348,5 +348,7 @@ export default function CommentsModal({ post, closeModal }) {
         </div>
       </div>
     </div>
+    </div>
+    </div>
   );
 }
