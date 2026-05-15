@@ -1,10 +1,16 @@
 const express = require('express')
-const app = express()
 require("dotenv").config()
 const cors = require("cors")
 const cookieParser = require("cookie-parser")
 
-const {protect} = require('./middleware/authMiddleware.js')
+// to implement socket io properly need to create http server
+const { createServer } = require('node:http')
+const { Server } = require('socket.io')
+const app = express()
+const server = createServer(app)
+const io = new Server(server) // create web socket server along with 
+
+const { protect } = require('./middleware/authMiddleware.js')
 
 // import routes
 const userRoutes = require('./routes/userRoutes.js')
@@ -35,8 +41,8 @@ const PORT = 2000
 // WARNING !!!!NEVER PUSH THIS INTO PRODUCTION !!!!!
 // UNCOMMENT THE ABOVE CODE FOR PRODUCTION USE!!!
 app.use(cors({
-    origin:true,
-    credentials:true
+    origin: true,
+    credentials: true
 }))
 
 
@@ -49,13 +55,33 @@ app.use(cookieParser())
 connectDB(app)
 
 // routes
-app.use("/api/user",userRoutes)
-app.use("/api/profile",protect,profileRoutes) // call the middleware right here
-app.use("/api/post",protect,postRoutes)
-app.use("/api/comment",protect,commentRoutes)
-app.use("/api/follow",protect,followRoutes)
-app.use("/api/feed",protect,feedRoutes)
+app.use("/api/user", userRoutes)
+app.use("/api/profile", protect, profileRoutes) // call the middleware right here
+app.use("/api/post", protect, postRoutes)
+app.use("/api/comment", protect, commentRoutes)
+app.use("/api/follow", protect, followRoutes)
+app.use("/api/feed", protect, feedRoutes)
 app.use("/api/search", protect, searchRoutes)
 
 
-app.listen(PORT,()=>console.log('Server is running on',PORT))
+// web socket implementation starts here 
+io.on('connection', (socket) => {
+    console.log(`A user logged in ${socket.id}`)
+
+    socket.on('disconnect', () => {
+        console.log(`A user disconnected ${socket.id}`)
+    })
+
+    socket.on('message', (msg) => {
+        console.log(`Message from the user${socket.id} is  ${msg}`)
+        io.emit('msg', `${msg}`)
+    })
+
+
+})
+
+// newer listen that handles both http and web socket connections
+server.listen(PORT, () => console.log('server running on', PORT))
+
+// the older app.listen to handle http requests
+//app.listen(PORT, () => console.log('Server is running on', PORT))
