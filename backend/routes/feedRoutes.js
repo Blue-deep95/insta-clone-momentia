@@ -8,8 +8,6 @@ const Follow = require('../models/Follow')
 const Post = require('../models/Post')
 const Like = require('../models/Like')
 
-
-
 // the main route that sends posts to the frontend
 // the page indicates where the user is and we send the next 20 posts to based on the pages
 // much work is required on theese routes in the future when sending information too much information is being sent to 
@@ -132,8 +130,6 @@ router.get("/get-posts/:page",
     }
 )
 
-// this route is only for getting video posts only just like above like instagram reels
-// the code will be same as above except at the beginning we have to match the correct fields
 router.get("/get-reels/:page",
     async (req, res) => {
         try {

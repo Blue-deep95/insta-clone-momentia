@@ -111,7 +111,10 @@ router.post("/login",async(req,res)=>{
         user:{
             id: user._id,
             name: user.name,
-            email: user.email
+            email: user.email,
+            // aditionally give profile pictures too to the users
+            // so it can be used with react-redux toolkit to send information
+            profilePicture:user.profilePicture
         },
         message:"Login successful"
        })
