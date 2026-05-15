@@ -95,8 +95,8 @@ api.interceptors.response.use(
                 console.log('invalid token 😒')
                 // delete items from localstorage and try to log the user out
                 // uncomment later
-                // localStorage.removeItem("token")
-                // localStorage.removeItem("user")
+                localStorage.removeItem("token")
+                localStorage.removeItem("user")
 
                 return Promise.reject(err)
             }

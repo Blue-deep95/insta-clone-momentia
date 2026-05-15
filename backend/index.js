@@ -4,7 +4,11 @@ require("dotenv").config()
 const cors = require("cors")
 const cookieParser = require("cookie-parser")
 
-const {protect} = require('./middleware/authMiddleware.js')
+// to implement socket io properly need to create http server
+const { createServer } = require('node:http')
+const server = createServer(app)
+
+const { protect } = require('./middleware/authMiddleware.js')
 
 // import routes
 const userRoutes = require('./routes/userRoutes.js')
@@ -35,8 +39,8 @@ const PORT = 2000
 // WARNING !!!!NEVER PUSH THIS INTO PRODUCTION !!!!!
 // UNCOMMENT THE ABOVE CODE FOR PRODUCTION USE!!!
 app.use(cors({
-    origin:true,
-    credentials:true
+    origin: true,
+    credentials: true
 }))
 
 
@@ -49,13 +53,16 @@ app.use(cookieParser())
 connectDB(app)
 
 // routes
-app.use("/api/user",userRoutes)
-app.use("/api/profile",protect,profileRoutes) // call the middleware right here
-app.use("/api/post",protect,postRoutes)
-app.use("/api/comment",protect,commentRoutes)
-app.use("/api/follow",protect,followRoutes)
-app.use("/api/feed",protect,feedRoutes)
+app.use("/api/user", userRoutes)
+app.use("/api/profile", protect, profileRoutes) // call the middleware right here
+app.use("/api/post", protect, postRoutes)
+app.use("/api/comment", protect, commentRoutes)
+app.use("/api/follow", protect, followRoutes)
+app.use("/api/feed", protect, feedRoutes)
 app.use("/api/search", protect, searchRoutes)
 
+// newer listen that handles both http and web socket connections
+server.listen(PORT, () => console.log('server running on', PORT))
 
-app.listen(PORT,()=>console.log('Server is running on',PORT))
+// the older app.listen to handle http requests
+//app.listen(PORT, () => console.log('Server is running on', PORT))
