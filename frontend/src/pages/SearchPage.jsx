@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import api from "../services/api";
 import { Virtuoso, VirtuosoGrid } from "react-virtuoso";
+import { useNavigate } from "react-router-dom";
 import {
   Search,
   User,
@@ -21,6 +22,8 @@ export default function SearchPage() {
 
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
+
+  const navigate = useNavigate();
 
   // Debounce effect: update debouncedQuery after 1 sec of no typing
   useEffect(() => {
@@ -134,7 +137,7 @@ export default function SearchPage() {
               data={results}
               endReached={loadMore}
               itemContent={(index, item) => (
-                <UserCard item={item} />
+                <UserCard item={item} navigate={navigate} />
               )}
               components={{
                 Footer: () =>
@@ -152,7 +155,7 @@ export default function SearchPage() {
               endReached={loadMore}
               listClassName="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-1 p-1"
               itemContent={(index, item) => (
-                <PostGridItem item={item} />
+                <PostGridItem item={item} navigate={navigate} />
               )}
               components={{
                 Footer: () =>
@@ -174,11 +177,14 @@ export default function SearchPage() {
 /* User Card */
 /* ------------------------------------------------ */
 
-function UserCard({ item }) {
+function UserCard({ item, navigate }) {
   const profilePic = item.profilePicture?.profileView || item.profilePicture?.original?.url || "https://via.placeholder.com/150";
 
   return (
-    <div className="flex items-center justify-between px-4 py-3 hover:bg-zinc-900 transition cursor-pointer">
+    <div 
+      onClick={() => navigate(`/profile/${item._id}`)}
+      className="flex items-center justify-between px-4 py-3 hover:bg-zinc-900 transition cursor-pointer"
+    >
       <div className="flex items-center gap-3">
         <img
           src={profilePic}
@@ -204,9 +210,12 @@ function UserCard({ item }) {
 /* Post Grid Item */
 /* ------------------------------------------------ */
 
-function PostGridItem({ item }) {
+function PostGridItem({ item, navigate }) {
   return (
-    <div className="aspect-square relative group cursor-pointer overflow-hidden rounded-sm">
+    <div 
+      onClick={() => navigate(`/profile/${item.author}`)}
+      className="aspect-square relative group cursor-pointer overflow-hidden rounded-sm"
+    >
       <img
         src={item.thumbImage}
         alt="post"
