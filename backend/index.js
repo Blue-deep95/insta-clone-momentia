@@ -68,13 +68,17 @@ app.use("/api/search", protect, searchRoutes)
 io.on('connection', (socket) => {
     console.log(`A user logged in ${socket.id}`)
 
+    socket.join('room1')
+
+    socket.emit('msg' ,`Hello user ${socket.id} you are in room1`)
     socket.on('disconnect', () => {
+        io.emit('msg',`A user disconnected ${socket.id}`)
         console.log(`A user disconnected ${socket.id}`)
     })
 
     socket.on('message', (msg) => {
         console.log(`Message from the user${socket.id} is  ${msg}`)
-        io.emit('msg', `${msg}`)
+        socket.to('room1').emit('msg', `${msg}`)
     })
 
 
