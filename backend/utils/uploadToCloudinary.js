@@ -39,7 +39,7 @@ const uploadToCloudinary = (buffer, folder, type = 'post', resourceType='image')
         // for videos too fix the ratio at 1:1
         options.format = 'mp4' // universal compatibility
         options.transformation = [
-            {width:1080,height:1080,crop:'fill',gravity:'auto'},
+            {width:1080,height:1080,crop:'fill'},
             {quality:'auto'}
         ]
 
